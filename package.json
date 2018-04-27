@@ -1,0 +1,24 @@
+{
+  "author": "Nathaniel Hutchins (@MynockSpit)",
+  "dependencies": {
+    "lodash-es": "^4.17.8",
+    "redux": "^4.0.0"
+  },
+  "description": "A simple api for using redux without actions, action creators or reducers.",
+  "devDependencies": {
+    "@babel/core": "^7.0.0-beta.44",
+    "webpack": "^4.6.0",
+    "webpack-cli": "^2.0.14"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "ISC",
+  "main": "dist/reducerless-redux.js",
+  "module": "src/main.js",
+  "name": "reducerless-redux",
+  "scripts": {
+    "build": "webpack"
+  },
+  "version": "1.0.0"
+}
