@@ -4,12 +4,14 @@
 
 1. Import `createStore` from `reducerless-redux` in your app, and use it like redux's `createStore` but without the first argument (reducers).
 
-    ```js
+    ```jsx
+    // index.jsx
+
     // import createStore
     import { createStore } from 'reducerless-redux'
 
-    // create your store
-    const store = createStore()
+    // create your store and export it so we can set state on it
+    export const store = createStore()
 
     // use the imported store
     render(
@@ -22,7 +24,9 @@
 
 2. Connect your React components to your state.
 
-    ```js
+    ```jsx
+    // MyComponent.jsx
+
     // import the connect function from react-redux
     import { connect } from 'react-redux'
         
@@ -31,20 +35,22 @@
     // connect parts of your state
     const mapStateToProps = ({ count }) => ({ count })
     
-    export default connect(mapStateToProps)(App)
+    export default connect(mapStateToProps)(MyComponent)
     ```
 
 3. Import `setStore` and use it in your components (or in a services file).
 
     ```jsx
-    import { globalStore } from 'reducerless-redux'
+    // MyComponent.jsx
 
-    // use .do to run a function on your data or a part of your data
-    globalStore('count')
-      .do(count => ++count)
+    import { store } from './index.js' // this is the store you created
 
-    // use .set to set your data or a part of your data
-    globalStore('users').set(`${devId}.title`, 'Web Developer')
+    // use .select to select your storePart (and an optional path) and .set to 
+    store.select('count')
+      .set(count => ++count)
+
+    // use .select to select your storePart (and an optional path) and .set to 
+    store.select('users', `${devId}.title`).set('Web Developer')
     ```
 
 ## Documentation
@@ -53,29 +59,26 @@
 
 
 ---
-### `globalStore(state)`
+### `store.select(storePart, [path])`
 
-Selects the state you're going to use and returns an object with modification methods. Current supported modification methods are `.set` and `.do`.
+Selects the state you're going to use and returns an object with modification methods. 
 
 #### Arguments
-`state (string)`: The key of the state object you want to interact with
+`storePart (string)`: The key of the state object you want to interact with
+`path (string OR Array)`: The path to specific data
 
 #### Returns
-`modifers (Object)`: Returns an object of modification methods.
+`.set()`: a method to set the state you just selected
 
 ---
-### `globalStore(...).set([ path ,] value)`
+### `store.select(...).set(valueOrFunction, [asAction])`
 
 Sets the selected state's path to the value specified. If path is not set, replaces the state with the value specified.
 
 #### Arguments
 
-`path (string)`: The path to use when setting state. If not specified, replaces state with the value specified.  
-`value (any)`: The value to insert.
-
-#### Returns
-
-`undefined`
+`setter (value OR Function)`: If this is a function, it is run, and the value returned is the new state. Function is passed the old state as an argument.
+`asAction (string)`: A string to describe the action you're doing. Used as the action type for redux, and appended to the reducerless prefix. (example: REDUCERLESS_SET_STOREPART_MYCUSTOMACTION)
 
 #### Examples
 
@@ -83,7 +86,7 @@ Sets the selected state's path to the value specified. If path is not set, repla
 // set full state (without path)
 // given 'developers': null
  
-globalStore('developers').set({
+store.select('developers').set({
   "1": { name: "Nathaniel", title: "Web Developer" }
   "2": { name: "Eddie", title: "Web Developer" }
 })
@@ -101,28 +104,19 @@ globalStore('developers').set({
 //   "2": { name: "Eddie", title: "Web Developer" }
 // }
  
-globalStore('developers').set('1.name', "Nathaniel Hutchins")
+store.select('developers', '1.name').set("Nathaniel Hutchins")
+
+// or, if you don't like a string path
+store.select('developers').set((developers) => {
+  developers['1'].name = "Nathaniel Hutchins"
+  return developers
+})
 
 // 'developers': {
 //   "1": { name: "Nathaniel Hutchins", title: "Web Developer" }
 //   "2": { name: "Eddie", title: "Web Developer" }
 // }
 ```
-
-### `globalStore(...).do([ path ,] fn)`
-
-Exposes the state, or the state part, to a user-written callback function.
- 
-#### Arguments
-
-`path (string)`: The path to use when setting state. If not specified, replaces state with the value specified.  
-`fn (Function)`: A function used to modify the state or state part.
-
-#### Returns
-
-`undefined`
-
-#### Examples
 
 ```js
 // given 'todos': [
@@ -132,9 +126,7 @@ Exposes the state, or the state part, to a user-written callback function.
 // ]
 
 // delete completed todos
-globalStore('todos').do(function (data) {
-  return data.filter(function (todo) { return !todo.complete })
-})
+store.select('todos').set((data) => data.filter((todo) => !todo.complete))
 
 // 'todos': [
 //   { text: "add support for middleware", complete: false },
@@ -153,8 +145,12 @@ globalStore('todos').do(function (data) {
 // }
 
 // increment play count
-globalStore('music').do('["Burning Down The House"].plays', function(data) {
-  return data + 1
+store.select('music', '["Burning Down The House"].plays').set((plays) => plays + 1)
+
+// or, if you don't like a string path
+store.select('music').set((music) => {
+  music['Burning Down The House'].plays++
+  return music
 })
 
 // 'music': {
@@ -165,28 +161,4 @@ globalStore('music').do('["Burning Down The House"].plays', function(data) {
 //     artist: "Talking Heads", plays: 9, skips: 0
 //   }
 // }
-```
-
-
-```js
-
-// all config in object
-store({ state: 'items', path: 'path.to.deep.state', action: 'delete_this'}).set(8)
-
-// optional config in object
-store('items', { path: 'path.to.deep.state', action: 'delete_this' })
-  .set(8)
-
-// optional path as second parameter
-store('items', 'path.to.deep.state')
-  .action('delete_this')
-  .set(8)
-
-// optional paths as chains
-store('items')
-  .path('path.to.deep.state')
-  .action('delete_this')
-  .set(8)
-
-
 ```

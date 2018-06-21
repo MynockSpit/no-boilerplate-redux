@@ -9,7 +9,7 @@ import {
 } from 'lodash-es'
 
 // this prefex SHOULD make sure that no reducerless reducers and normal reducers collide
-const reducerlessPrefix = 'REDUCERLESS_SET'
+const reducerlessPrefix = 'REDUCERLESS_ACTION'
 
 // store a map of reducers so we can add reducers to it on the fly
 const reducers = {}
@@ -128,7 +128,7 @@ export const createStore = (baseReducers, preloadedState, enhancer) => {
 
   // build reducerless reducers for each piece of the preloadedState that isn't matched already
   if (preloadedState)
-    Object.keys(preloadedState).forEach(addReducer)
+    Object.keys(preloadedState).forEach(addReducerIfNeeded)
 
   // always need at least one reducer to start; redux_loaded is a dummy reducer that doesn't do anything except let us build an initial store; we only add it if we didn't get a baseReducer or an initialState from the user
   if (!Object.keys(reducers).length)
@@ -155,23 +155,14 @@ function select(stateKey, path) {
   return {
     set(valOrFn, customAction) {
 
-      addReducer(stateKey)
+      addReducerIfNeeded(stateKey)
 
       const isFunction = (typeof valOrFn === "function")
       const value = isFunction ? undefined : valOrFn
       const fn = isFunction ? valOrFn : undefined
 
       if (customAction !== undefined)
-        action += customAction.toUpperCase()
-
-      console.log({
-        type: action,
-        payload: {
-          path,
-          value,
-          fn
-        }
-      })
+        action += `_${customAction.toUpperCase().replace(/\s+/,'_')}`.replace(/^__/,'_')
 
       storeReference.dispatch({
         type: action,
@@ -185,19 +176,25 @@ function select(stateKey, path) {
   }
 }
 
-function addReducer(stateKey) {
+function addReducerIfNeeded(stateKey) {
+  // returns true if it created a new reducer for it, false if it didn't
+
   if (stateKey !== null) {
     // if this store doesn't exist, create a reducer for it
     if (!reducers[stateKey]) {
       reducers[stateKey] = reducerFactory(stateKey)
-      storeReference.replaceReducer(combineReducers(reducers))
+  
+      if (storeReference)
+        storeReference.replaceReducer(combineReducers(reducers))
 
       return true
     }
     // if this does exist, but isn't reducerless, make a reducerless reducer for it
     else if (!reducers[stateKey].reducerless) {
       reducers[stateKey] = reducerFactory(stateKey, reducers[stateKey])
-      storeReference.replaceReducer(combineReducers(reducers))
+
+      if (storeReference)
+        storeReference.replaceReducer(combineReducers(reducers))
 
       return true
     }
