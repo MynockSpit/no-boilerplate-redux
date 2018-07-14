@@ -4,7 +4,7 @@
 
 Most of the following you'll recognize from setting up Redux.
 
-1. Import `createStore` from `reducerless-redux` (**not redux!**) in your app, and use it like redux's `createStore`. The first argument must either be an object of standard redux reducers or omitted.
+1. Import `createStore` from `reducerless-redux` (**not redux!**) in your app, and use it like redux's `createStore`.
 
     ```jsx
     // index.jsx
@@ -43,7 +43,7 @@ Most of the following you'll recognize from setting up Redux.
 3. Import your `store` and use it in your components (or in a services file).
 
     ```jsx
-    // MyComponent.jsx or MyService.js or AnywhereElse.really
+    // MyComponent.jsx or MyService.js or AnythingElse.really
 
     import { store } from './index.js' // this is the store you created
 
@@ -61,7 +61,60 @@ Most of the following you'll recognize from setting up Redux.
 
 ## Documentation
 
+### `createStore(baseReducers, preloadedState, enhancer)`
 
+Creates the Redux store. Has a very similar signature to redux's createStore with the single exception that the first argument is `baseReducers` and must either undefined or an object that maps to multiple (vanilla) redux reducers.
+
+#### Arguments
+`baseReducers (undefined, null or Object)`: undefined or null (or empty object) indicated that all reducers are to be defined by reducerless-redux; an object that maps to vanilla redux reducers will set up those reducers as normal and add a reducerless-redux reducer for each.  
+`preloadedState`: must be a plain object where keys map reducers
+`enhancer`: identical to redux's `enhancer` argument [(docs)](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments)
+
+#### Returns
+`store`: the store object created; used to `.select` parts of state and then `.set` them later.
+
+#### Examples
+
+```js
+// create a basic new store 
+import { createStore } from 'reducerless-redux'
+
+export const store = createStore()
+```
+
+```js
+// create a new store with default values for todos and visibilityFilter
+import { createStore } from 'reducerless-redux'
+
+export const store = createStore(null, {
+  todos: [],
+  visibilityFilter: 'SHOW_ALL'
+})
+```
+
+```js
+// create a new store with vanilla reducer for 'albums' and default values for 'albums' and 'artists'
+import { createStore } from 'reducerless-redux'
+import { albums } from './reducers'
+
+export const store = createStore({ albums }, {
+  albums: [{
+    title: 'Talking Heads: 77',
+    artist: 'Talking Heads',
+    released: 'September 16, 1977'
+  }, {
+    title: 'Little Creatures',
+    artist: 'Talking Heads',
+    released: 'June 10, 1985'
+  }]
+  artists: {
+    'Talking Heads': {
+      formed: '1975',
+      activeUntil: '1991'
+    }
+  }
+})
+```
 
 ---
 ### `store.select(storePart, [path])`
