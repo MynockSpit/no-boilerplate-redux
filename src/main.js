@@ -19,8 +19,8 @@ let storeReference
 
 // takes a stateKey (for reducerless redux) and an optional normalReducer
 // builds a reducer for the statekey (reducerlessReducer) that gets called
-//   if there isn't a normalReducer
-//   OR if the action matches the reducerlessPrefix
+//   a) if there isn't a normalReducer
+//   OR b) if the action matches the reducerlessPrefix
 // normalReducers exists only when createStore() was called with reducers
 
 // once everything is created by the factory, the flow is either
@@ -31,76 +31,16 @@ function reducerFactory(stateKey, normalReducer) {
 
   let setAction = `${reducerlessPrefix}_${stateKey}`.toUpperCase()
 
-  // build a reducerlessReducer here in the same context as setAction
-  // used by reducerReducer
-  function reducerlessReducer(state = null, action) {
-    const {
-      path = null,
-        value = null,
-        fn = null
-    } = _get(action, 'payload', {})
-
-    if ((action.type).indexOf(setAction) != -1) {
-      // REDUCERLESS_SET sets the value (works best on anything that isn't an array)
-      // Operates on either a path you pass in (and modifies a part) of the state or 
-      // replaces the entire state without a path
-      let newState = _cloneDeep(state)
-
-      // if path isn't null, it means we're setting a PART of the state (leaf)
-      if (path !== null) {
-
-        if (newState === null)
-          newState = {}
-
-        if (typeof newState !== "object") {
-          console.error(`Did not set ${path} of ${stateKey} -- ${stateKey} is not an object (${newState}).`)
-
-          // setting newState back to state to prevent rerenders without changes
-          newState = state
-        }
-
-        // if the input was a function, use it to generate new state leaf
-        else if (fn) {
-          const statePart = _get(newState, path)
-          _set(newState, path, fn(statePart))
-        }
-
-        // if it was a value, replace the leaf with the input value
-        else
-          _set(newState, path, value)
-      }
-
-      // if path is null it means we're setting the entire state (tree)
-      else {
-        // if the input was a function, use it to generate new state 
-        if (fn)
-          newState = fn(newState)
-
-        // if the input wasn't a function, replace the tree with the input value
-        else
-          newState = value
-      }
-
-      return newState
-    }
-
-    return state
-  }
-
-  // reducer reducer is a small function that decides which reducer to use
+  // reducerRouter is a small function that decides which reducer to use
   // does it use the normalReducer? (preferred if it exists)
   // or the reducerlessReducer (always used if normalReducer doesn't)
   function reducerRouter(state, action) {
-    // if there's a normal reducer, prefer it
-    if (normalReducer) {
-      if ((action.type).indexOf(reducerlessPrefix) == -1)
-        return normalReducer(state, action)
-      else
-        return reducerlessReducer(state, action)
-    }
+    // if there's a normal reducer and the action isn't prefixed, use the normal reducer
+    if (normalReducer && (action.type).indexOf(reducerlessPrefix) === -1)
+      return normalReducer(state, action)
 
-    // if there isn't, don't
-    return reducerlessReducer(state, action)
+    // otherwise, reducerless!
+    return reducerlessReducer(setAction, state, action)
   }
 
   // indicate that this reducer has been reducerless'd
@@ -108,6 +48,60 @@ function reducerFactory(stateKey, normalReducer) {
 
   // return
   return reducerRouter
+}
+
+function reducerlessReducer(setAction, state = null, action) {
+  const {
+    path = null,
+      value = null,
+      fn = null
+  } = _get(action, 'payload', {})
+
+  if ((action.type).indexOf(setAction) != -1) {
+    // REDUCERLESS_ACTION sets the value (works best on anything that isn't an array)
+    // Operates on either a path you pass in (and modifies a part) of the state or 
+    // replaces the entire state without a path
+    let newState = _cloneDeep(state)
+
+    // if path isn't null, it means we're setting a PART of the state (leaf)
+    if (path !== null) {
+
+      if (newState === null)
+        newState = {}
+
+      if (typeof newState !== "object") {
+        console.error(`Did not set ${path} of ${stateKey} -- ${stateKey} is not an object (${newState}).`)
+
+        // setting newState back to state to prevent rerenders without changes
+        newState = state
+      }
+
+      // if the input was a function, use it to generate new state leaf
+      else if (fn) {
+        const statePart = _get(newState, path)
+        _set(newState, path, fn(statePart))
+      }
+
+      // if it was a value, replace the leaf with the input value
+      else
+        _set(newState, path, value)
+    }
+
+    // if path is null it means we're setting the entire state (tree)
+    else {
+      // if the input was a function, use it to generate new state 
+      if (fn)
+        newState = fn(newState)
+
+      // if the input wasn't a function, replace the tree with the input value
+      else
+        newState = value
+    }
+
+    return newState
+  }
+
+  return state
 }
 
 export const createStore = (baseReducers, preloadedState, enhancer) => {
@@ -180,7 +174,8 @@ function addReducerIfNeeded(stateKey) {
   // returns true if it created a new reducer for it, false if it didn't
 
   if (stateKey !== null) {
-    // if this store doesn't exist, create a reducer for it
+
+    // if this store doesn't exist, create one
     if (!reducers[stateKey]) {
       reducers[stateKey] = reducerFactory(stateKey)
   

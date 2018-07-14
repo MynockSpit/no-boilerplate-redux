@@ -1,8 +1,10 @@
 # Reducerless Redux
 
-## How to Use
+## How to Use (with React)
 
-1. Import `createStore` from `reducerless-redux` in your app, and use it like redux's `createStore` but without the first argument (reducers).
+Most of the following you'll recognize from setting up Redux.
+
+1. Import `createStore` from `reducerless-redux` (**not redux!**) in your app, and use it like redux's `createStore`. The first argument must either be an object of standard redux reducers or omitted.
 
     ```jsx
     // index.jsx
@@ -22,7 +24,7 @@
     )
     ```
 
-2. Connect your React components to your state.
+2. Connect your React components to your state. This causes the "magic" auto-update we're familiar with from React. (example uses [`react-redux`](https://github.com/reduxjs/react-redux))
 
     ```jsx
     // MyComponent.jsx
@@ -38,24 +40,27 @@
     export default connect(mapStateToProps)(MyComponent)
     ```
 
-3. Import `setStore` and use it in your components (or in a services file).
+3. Import your `store` and use it in your components (or in a services file).
 
     ```jsx
-    // MyComponent.jsx
+    // MyComponent.jsx or MyService.js or AnywhereElse.really
 
     import { store } from './index.js' // this is the store you created
 
-    // use .select to select your storePart (and an optional path) and .set to 
-    store.select('count')
+    // .select to select what part of the store you're modifying (and an optional path)
+    // .set takes a value or a function to set the selected storeBranch
+
+    store
+      .select('count')
       .set(count => ++count)
 
-    // use .select to select your storePart (and an optional path) and .set to 
-    store.select('users', `${devId}.title`).set('Web Developer')
+    store
+      .select('users', '["Nathaniel Hutchins"].title')
+      .set('Web Developer')
     ```
 
 ## Documentation
- globalStore is the function that lets us act on the store easily
- there are two main functions, .set and .do
+
 
 
 ---
@@ -64,8 +69,8 @@
 Selects the state you're going to use and returns an object with modification methods. 
 
 #### Arguments
-`storePart (string)`: The key of the state object you want to interact with
-`path (string OR Array)`: The path to specific data
+`storePart (string)`: The key of the state object you want to interact with  
+`path (string OR Array)`: The path to specific data (uses [`lodash`](https://github.com/lodash/lodash)-style paths)
 
 #### Returns
 `.set()`: a method to set the state you just selected
@@ -77,8 +82,8 @@ Sets the selected state's path to the value specified. If path is not set, repla
 
 #### Arguments
 
-`setter (value OR Function)`: If this is a function, it is run, and the value returned is the new state. Function is passed the old state as an argument.
-`asAction (string)`: A string to describe the action you're doing. Used as the action type for redux, and appended to the reducerless prefix. (example: REDUCERLESS_SET_STOREPART_MYCUSTOMACTION)
+`valueOrFunction (value OR Function)`: If this is a function, it is run, and the value returned is the new state. Function is passed the old state as an argument.
+`asAction (string)`: A string to describe the action you're doing. Used as the action type for redux, and appended to the reducerless prefix. 
 
 #### Examples
 
@@ -89,8 +94,9 @@ Sets the selected state's path to the value specified. If path is not set, repla
 store.select('developers').set({
   "1": { name: "Nathaniel", title: "Web Developer" }
   "2": { name: "Eddie", title: "Web Developer" }
-})
+}, "EDDIE_NATHANIEL")
 
+// Action: REDUCERLESS_ACTION_DEVELOPERS_EDDIE_NATHANIEL
 // 'developers': {
 //   "1": { name: "Nathaniel", title: "Web Developer" }
 //   "2": { name: "Eddie", title: "Web Developer" }
@@ -112,6 +118,7 @@ store.select('developers').set((developers) => {
   return developers
 })
 
+// Action: REDUCERLESS_ACTION_DEVELOPERS
 // 'developers': {
 //   "1": { name: "Nathaniel Hutchins", title: "Web Developer" }
 //   "2": { name: "Eddie", title: "Web Developer" }
@@ -126,8 +133,14 @@ store.select('developers').set((developers) => {
 // ]
 
 // delete completed todos
-store.select('todos').set((data) => data.filter((todo) => !todo.complete))
+store
+  .select('todos')
+  .set(
+    (data) => data.filter((todo) => !todo.complete),
+    "COMPLETE_TODO"
+  )
 
+// Action: REDUCERLESS_ACTION_TODOS_COMPLETE_TODO
 // 'todos': [
 //   { text: "add support for middleware", complete: false },
 //   { text: "take a break from writing code", complete: false }
@@ -145,7 +158,9 @@ store.select('todos').set((data) => data.filter((todo) => !todo.complete))
 // }
 
 // increment play count
-store.select('music', '["Burning Down The House"].plays').set((plays) => plays + 1)
+store
+  .select('music', '["Burning Down The House"].plays')
+  .set((plays) => plays + 1)
 
 // or, if you don't like a string path
 store.select('music').set((music) => {
