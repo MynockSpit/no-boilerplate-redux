@@ -4,16 +4,16 @@
 
 Most of the following you'll recognize from setting up Redux.
 
-1. Import `createStore` from `reducerless-redux` (**not redux!**) in your app, and use it like redux's `createStore`.
+1. Import `initializeStore` from `no-boilerplate-redux` in your app, and use it like redux's `createStore`.
 
     ```jsx
     // index.jsx
 
-    // import createStore
-    import { createStore } from 'reducerless-redux'
+    // import initializeStore
+    import { initializeStore } from 'no-boilerplate-redux'
 
-    // create your store and export it so we can set state on it
-    export const store = createStore()
+    // initialize your store and export it so we can set state on it
+    export const store = initializeStore()
 
     // use the imported store
     render(
@@ -61,14 +61,27 @@ Most of the following you'll recognize from setting up Redux.
 
 ## Documentation
 
-### `createStore(baseReducers, preloadedState, enhancer)`
+### `initializeStore({ reducers, reducerCombiner, preloadedState, enhancer })`
 
-Creates the Redux store. Has a very similar signature to redux's createStore with the single exception that the first argument is `baseReducers` and must either undefined or an object that maps to multiple (vanilla) redux reducers.
+Initializes the Redux store. Uses very similar arguments to redux's `createStore`.
+
+All argument accepted are things you already know about in redux, so here's a quick primer on how they may have changed.
+ 
+The first argument in `createStore` (`reducer`) has been split into two parts, `reducers` and `reducerCombiner`. In simplest terms possible, `reducers` is the object that gets passed into `combineReducers` and `reducerCombiner` is (a function like) `combineReducers`.
+
+Unless you use a module that modifies the reducer AFTER combining them (e.g. `connected-react-router`), you shouldn't need to change `reducerCombiner`.
+ 
+*See [combineReducers](https://github.com/reduxjs/redux/blob/master/docs/api/combineReducers.md) for  more details on `reducers` and how a `reducerCombiner` works.*
+ 
+The second and third arguments (`preloadedState` and `enhancers`) are merely repeated here. 
+
+*See [createStore#arguments](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments) for more info.*
 
 #### Arguments
-`baseReducers (undefined, null or Object)`: undefined or null (or empty object) indicated that all reducers are to be defined by reducerless-redux; an object that maps to vanilla redux reducers will set up those reducers as normal and add a reducerless-redux reducer for each.  
-`preloadedState`: must be a plain object where keys map reducers
-`enhancer`: identical to redux's `enhancer` argument [(docs)](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments)
+`reducers (Object)`: undefined or null (or empty object) indicated that all reducers are to be defined by no-boilerplate-redux; an object that maps to vanilla redux reducers will set up those reducers as normal and add a no-boilerplate-redux reducer for each.  
+`reducerCombiner (Function)`: a function that accepts an object of reducers and generates a root reducer. e.g. `(reducers) => functionThatMakesRootReducer(reducers)`  
+`preloadedState (Object)`: a plain object where keys map reducers and values. [(more info)](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments)  
+`enhancer (Function)`: enhance your store with third-party plugins. [(more info)](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments)
 
 #### Returns
 `store`: the store object created; used to `.select` parts of state and then `.set` them later.
@@ -77,42 +90,62 @@ Creates the Redux store. Has a very similar signature to redux's createStore wit
 
 ```js
 // create a basic new store 
-import { createStore } from 'reducerless-redux'
+import { initializeStore } from 'no-boilerplate-redux'
 
-export const store = createStore()
+export const store = initializeStore()
 ```
 
 ```js
 // create a new store with default values for todos and visibilityFilter
-import { createStore } from 'reducerless-redux'
+import { initializeStore } from 'no-boilerplate-redux'
 
-export const store = createStore(null, {
-  todos: [],
-  visibilityFilter: 'SHOW_ALL'
+export const store = initializeStore({
+  preloadedState: {
+    todos: [],
+    visibilityFilter: 'SHOW_ALL'
+  }
 })
 ```
 
 ```js
 // create a new store with vanilla reducer for 'albums' and default values for 'albums' and 'artists'
-import { createStore } from 'reducerless-redux'
+import { initializeStore } from 'no-boilerplate-redux'
 import { albums } from './reducers'
 
-export const store = createStore({ albums }, {
-  albums: [{
-    title: 'Talking Heads: 77',
-    artist: 'Talking Heads',
-    released: 'September 16, 1977'
-  }, {
-    title: 'Little Creatures',
-    artist: 'Talking Heads',
-    released: 'June 10, 1985'
-  }]
-  artists: {
-    'Talking Heads': {
-      formed: '1975',
-      activeUntil: '1991'
+export const store = initializeStore({
+  reducers: { albums }, 
+  preloadedState: {
+    albums: [{
+      title: 'Talking Heads: 77',
+      artist: 'Talking Heads',
+      released: 'September 16, 1977'
+    }, {
+      title: 'Little Creatures',
+      artist: 'Talking Heads',
+      released: 'June 10, 1985'
+    }],
+    artists: {
+      'Talking Heads': {
+        formed: '1975',
+        activeUntil: '1991'
+      }
     }
   }
+})
+```
+
+```js
+// example use with connected-react-router
+
+import { initializeStore } from 'no-boilerplate-redux'
+import baseReducers from './reducers'
+import { applyMiddleware, compose, combineReducers } from 'redux'
+import { routerMiddleware, connectRouter } from 'connected-react-router'
+
+export const store = initializeStore({
+  reducers: baseReducers,
+  reducerCombiner: (reducers) => connectRouter(history)(combineReducers(reducers)),
+  enhancer: compose(applyMiddleware(routerMiddleware(history)))
 })
 ```
 
@@ -149,7 +182,7 @@ store.select('developers').set({
   "2": { name: "Eddie", title: "Web Developer" }
 }, "EDDIE_NATHANIEL")
 
-// Action: REDUCERLESS_ACTION_DEVELOPERS_EDDIE_NATHANIEL
+// Action: NO_BOILERPLATE_REDUX_ACTION_DEVELOPERS_EDDIE_NATHANIEL
 // 'developers': {
 //   "1": { name: "Nathaniel", title: "Web Developer" }
 //   "2": { name: "Eddie", title: "Web Developer" }
@@ -171,7 +204,7 @@ store.select('developers').set((developers) => {
   return developers
 })
 
-// Action: REDUCERLESS_ACTION_DEVELOPERS
+// Action: NO_BOILERPLATE_REDUX_ACTION_DEVELOPERS
 // 'developers': {
 //   "1": { name: "Nathaniel Hutchins", title: "Web Developer" }
 //   "2": { name: "Eddie", title: "Web Developer" }
@@ -193,7 +226,7 @@ store
     "COMPLETE_TODO"
   )
 
-// Action: REDUCERLESS_ACTION_TODOS_COMPLETE_TODO
+// Action: NO_BOILERPLATE_REDUX_ACTION_TODOS_COMPLETE_TODO
 // 'todos': [
 //   { text: "add support for middleware", complete: false },
 //   { text: "take a break from writing code", complete: false }

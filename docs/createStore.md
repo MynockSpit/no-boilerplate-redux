@@ -19,7 +19,7 @@ import { render } from 'react-dom';
 import App from './App';
 
 import { Provider } from 'react-redux'
-import { createStore } from 'reducerless-redux'
+import { createStore } from 'no-boilerplate-redux'
 
 import { todos, pins } from './reducers'
 

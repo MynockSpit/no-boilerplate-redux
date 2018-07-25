@@ -14,11 +14,11 @@
     "dist"
   ],
   "license": "ISC",
-  "main": "dist/reducerless-redux.js",
+  "main": "dist/no-boilerplate-redux.js",
   "module": "src/main.js",
-  "name": "reducerless-redux",
+  "name": "no-boilerplate-redux",
   "scripts": {
-    "build": "webpack; gzip -k9 dist/reducerless-redux.js"
+    "build": "webpack; gzip -k9 dist/no-boilerplate-redux.js"
   },
   "version": "1.0.0"
 }

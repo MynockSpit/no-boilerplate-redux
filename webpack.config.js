@@ -4,7 +4,7 @@ const defaults = {
   entry: './src/main.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'reducerless-redux.js',
+    filename: 'no-boilerplate-redux.js',
     library: 'reducerlessRedux',
     libraryTarget: 'umd'
   },

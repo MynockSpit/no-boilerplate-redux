@@ -9,15 +9,16 @@ import {
 } from 'lodash-es'
 
 // this prefex SHOULD make sure that no reducerless reducers and normal reducers collide
-const reducerlessPrefix = 'REDUCERLESS_ACTION'
+const nbprActionPrefix = 'NO_BOILERPLATE_REDUX_ACTION'
 
 // store a map of reducers so we can add reducers to it on the fly
-const reducers = {}
+const nbprReducers = {}
 
 // build the inital store
-let storeReference
+let nbprStore
+let nbprReducerCombiner
 
-// takes a stateKey (for reducerless redux) and an optional normalReducer
+// takes a stateKey (for no boilerplate redux) and an optional normalReducer
 // builds a reducer for the statekey (reducerlessReducer) that gets called
 //   a) if there isn't a normalReducer
 //   OR b) if the action matches the reducerlessPrefix
@@ -29,14 +30,14 @@ let storeReference
 // action --> reducerRouter --> normalReducer
 function reducerFactory(stateKey, normalReducer) {
 
-  let setAction = `${reducerlessPrefix}_${stateKey}`.toUpperCase()
+  let setAction = `${nbprActionPrefix}_${stateKey}`.toUpperCase()
 
   // reducerRouter is a small function that decides which reducer to use
   // does it use the normalReducer? (preferred if it exists)
   // or the reducerlessReducer (always used if normalReducer doesn't)
   function reducerRouter(state, action) {
     // if there's a normal reducer and the action isn't prefixed, use the normal reducer
-    if (normalReducer && (action.type).indexOf(reducerlessPrefix) === -1)
+    if (normalReducer && (action.type).indexOf(nbprActionPrefix) === -1)
       return normalReducer(state, action)
 
     // otherwise, reducerless!
@@ -104,39 +105,48 @@ function reducerlessReducer(setAction, state = null, action) {
   return state
 }
 
-export const createStore = (baseReducers, preloadedState, enhancer) => {
-  // unlike redux's createStore, baseReducers MUST BE an uncombined reducers object -- the object you'd pass to combineReducers 
-  // https://github.com/reactjs/redux/blob/master/docs/api/combineReducers.md 
+/**
+ * 
+ * A createStore replacement. Does all the same things as createStore 
+ * (and accepts very similar arguments), and initializes no boilerplate redux.
+ * 
+ * @param {Object} config - A config object used to reference, create and recreate the store.
+ * @param {Object} config.reducers={} - An object of normal redux reducers to include alongside no-boilerplate-redux
+ * @param {Function} config.reducerCombiner=combineReducers - A function that takes in a reducers object (see above) and produces a root reducer
+ * @param {Object} config.preloadedState={} - An object of default state; does not require `reducers` param to function
+ * @param {Function} config.enhancer - A function to enhance your store with thirder-party capabilities. (see  https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md)
+ */
+export const initializeStore = (config) => {
+  const {
+    reducers = {}, 
+    reducerCombiner = combineReducers, 
+    preloadedState = {}, 
+    enhancer 
+  } = config
+  // if the user gives us some normal reducers, insert them into nbprReducers
+  Object.assign(nbprReducers, reducers)
 
-  // the other arguments are described in the redux documentation and behave identically
-  // https://github.com/reactjs/redux/blob/master/docs/api/createStore.md
-
-  if (typeof preloadedState === 'function' && typeof enhancer === 'undefined') {
-    enhancer = preloadedState
-    preloadedState = undefined
-  }
-
-  // if we get baseReducers, insert them into reducers
-  if (baseReducers)
-    Object.assign(reducers, baseReducers)
+  // we'll use this function to combine our reducers
+  // set this if you're using a plugin that adds itself to your reducers in a weird way (I'm looking at you connected-react-router)
+  // the default is combineReducers
+  nbprReducerCombiner = reducerCombiner
 
   // build reducerless reducers for each piece of the preloadedState that isn't matched already
-  if (preloadedState)
-    Object.keys(preloadedState).forEach(addReducerIfNeeded)
+  Object.keys(preloadedState).forEach(addReducerIfNeeded)
 
   // always need at least one reducer to start; redux_loaded is a dummy reducer that doesn't do anything except let us build an initial store; we only add it if we didn't get a baseReducer or an initialState from the user
-  if (!Object.keys(reducers).length)
-    reducers.redux_loaded = () => true
+  if (!Object.keys(nbprReducers).length)
+    nbprReducers.redux_loaded = () => true
 
-  storeReference = createReduxStore(
-    combineReducers(reducers),
+  nbprStore = createReduxStore(
+    combineReducers(nbprReducers),
     preloadedState,
     enhancer
   );
 
-  storeReference.select = select
+  nbprStore.select = select
 
-  return storeReference
+  return nbprStore
 }
 
 function select(stateKey, path) {
@@ -144,7 +154,7 @@ function select(stateKey, path) {
   if (stateKey === null)
     throw new Error('stateKey cannot be undefined!')
 
-  let action = `${reducerlessPrefix}_${stateKey}`.toUpperCase()
+  let action = `${nbprActionPrefix}_${stateKey}`.toUpperCase()
 
   return {
     set(valOrFn, customAction) {
@@ -158,7 +168,7 @@ function select(stateKey, path) {
       if (customAction !== undefined)
         action += `_${customAction.toUpperCase().replace(/\s+/,'_')}`.replace(/^__/,'_')
 
-      storeReference.dispatch({
+      nbprStore.dispatch({
         type: action,
         payload: {
           path,
@@ -176,20 +186,20 @@ function addReducerIfNeeded(stateKey) {
   if (stateKey !== null) {
 
     // if this store doesn't exist, create one
-    if (!reducers[stateKey]) {
-      reducers[stateKey] = reducerFactory(stateKey)
+    if (!nbprReducers[stateKey]) {
+      nbprReducers[stateKey] = reducerFactory(stateKey)
   
-      if (storeReference)
-        storeReference.replaceReducer(combineReducers(reducers))
+      if (nbprStore)
+        nbprStore.replaceReducer(nbprReducerCombiner(nbprReducers))
 
       return true
     }
     // if this does exist, but isn't reducerless, make a reducerless reducer for it
-    else if (!reducers[stateKey].reducerless) {
-      reducers[stateKey] = reducerFactory(stateKey, reducers[stateKey])
+    else if (!nbprReducers[stateKey].reducerless) {
+      nbprReducers[stateKey] = reducerFactory(stateKey, nbprReducers[stateKey])
 
-      if (storeReference)
-        storeReference.replaceReducer(combineReducers(reducers))
+      if (nbprStore)
+        nbprStore.replaceReducer(nbprReducerCombiner(nbprReducers))
 
       return true
     }
