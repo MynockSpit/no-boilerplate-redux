@@ -13,7 +13,7 @@
   "files": [
     "dist"
   ],
-  "license": "MIT-0",
+  "license": "MIT",
   "main": "dist/no-boilerplate-redux.js",
   "module": "src/main.js",
   "name": "no-boilerplate-redux",
@@ -25,5 +25,13 @@
     "redux",
     "reducerless",
     "boilerplate"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MynockSpit/no-boilerplate-redux.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MynockSpit/no-boilerplate-redux/issues"
+  },
+  "homepage": "https://github.com/MynockSpit/no-boilerplate-redux#readme"
 }
