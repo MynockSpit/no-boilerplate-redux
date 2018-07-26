@@ -13,7 +13,7 @@
   "files": [
     "dist"
   ],
-  "license": "MIT",
+  "license": "MIT-0",
   "main": "dist/no-boilerplate-redux.js",
   "module": "src/main.js",
   "name": "no-boilerplate-redux",
