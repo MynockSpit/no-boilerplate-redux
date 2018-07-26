@@ -4,7 +4,7 @@
     "lodash-es": "^4.17.8",
     "redux": "^4.0.0"
   },
-  "description": "A simple api for using redux without actions, action creators or reducers.",
+  "description": "Use redux without actions or reducers.",
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.44",
     "webpack": "^4.6.0",
@@ -13,7 +13,7 @@
   "files": [
     "dist"
   ],
-  "license": "ISC",
+  "license": "MIT-0",
   "main": "dist/no-boilerplate-redux.js",
   "module": "src/main.js",
   "name": "no-boilerplate-redux",
