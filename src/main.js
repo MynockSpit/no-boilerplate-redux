@@ -139,7 +139,7 @@ export const initializeStore = (config) => {
     nbprReducers.redux_loaded = () => true
 
   nbprStore = createReduxStore(
-    combineReducers(nbprReducers),
+    nbprReducerCombiner(nbprReducers),
     preloadedState,
     enhancer
   );
