@@ -11,7 +11,8 @@
     "webpack-cli": "^2.1.5"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "license": "MIT-0",
   "main": "dist/no-boilerplate-redux.js",
@@ -20,7 +21,7 @@
   "scripts": {
     "build": "webpack; gzip -k9 dist/no-boilerplate-redux.js"
   },
-  "version": "1.0.1",
+  "version": "1.0.2",
   "keywords": [
     "redux",
     "reducerless",
