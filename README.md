@@ -1,4 +1,6 @@
-# Reducerless Redux
+# No Boilerplate Redux
+
+Never write a reducer, an action, or worry about immutability again!
 
 ## How to Use (with React)
 
