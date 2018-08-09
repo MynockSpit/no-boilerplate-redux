@@ -21,7 +21,7 @@
   "scripts": {
     "build": "webpack; gzip -k9 dist/no-boilerplate-redux.js"
   },
-  "version": "1.0.2",
+  "version": "1.0.3",
   "keywords": [
     "redux",
     "reducerless",

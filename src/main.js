@@ -154,7 +154,7 @@ function select(stateKey, path) {
   if (stateKey === null)
     throw new Error('stateKey cannot be undefined!')
 
-  let action = `${nbprActionPrefix}_${stateKey}`.toUpperCase()
+  let actionType = `${nbprActionPrefix}_${stateKey}`.toUpperCase()
 
   return {
     set(valOrFn, customAction) {
@@ -166,16 +166,20 @@ function select(stateKey, path) {
       const fn = isFunction ? valOrFn : undefined
 
       if (customAction !== undefined)
-        action += `_${customAction.toUpperCase().replace(/\s+/,'_')}`.replace(/^__/,'_')
+        actionType += `_${customAction.toUpperCase().replace(/\s+/,'_')}`.replace(/^__/,'_')
 
-      nbprStore.dispatch({
-        type: action,
+      let action = {
+        type: actionType,
         payload: {
           path,
           value,
           fn
         }
-      })
+      }
+
+      nbprStore.dispatch(action)
+
+      return action
     }
   }
 }
