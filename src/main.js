@@ -18,6 +18,9 @@ const nbprReducers = {}
 let nbprStore
 let nbprReducerCombiner
 
+// cache action functions
+const nbprActionFunctions = {}
+
 // takes a stateKey (for no boilerplate redux) and an optional normalReducer
 // builds a reducer for the statekey (reducerlessReducer) that gets called
 //   a) if there isn't a normalReducer
@@ -28,7 +31,7 @@ let nbprReducerCombiner
 // action --> reducerRouter --> reducerlessReducer
 // OR
 // action --> reducerRouter --> normalReducer
-function reducerFactory(stateKey, normalReducer) {
+export function reducerFactory(stateKey, normalReducer) {
 
   let setAction = `${nbprActionPrefix}_${stateKey}`.toUpperCase()
 
@@ -51,7 +54,7 @@ function reducerFactory(stateKey, normalReducer) {
   return reducerRouter
 }
 
-function reducerlessReducer(setAction, state = null, action) {
+export function reducerlessReducer(setAction, state = null, action) {
   const {
     path = null,
       value = null,
@@ -80,7 +83,7 @@ function reducerlessReducer(setAction, state = null, action) {
       // if the input was a function, use it to generate new state leaf
       else if (fn) {
         const statePart = _get(newState, path)
-        _set(newState, path, fn(statePart))
+        _set(newState, path, nbprActionFunctions[fn](statePart))
       }
 
       // if it was a value, replace the leaf with the input value
@@ -92,7 +95,7 @@ function reducerlessReducer(setAction, state = null, action) {
     else {
       // if the input was a function, use it to generate new state 
       if (fn)
-        newState = fn(newState)
+        newState = nbprActionFunctions[fn](newState)
 
       // if the input wasn't a function, replace the tree with the input value
       else
@@ -149,7 +152,7 @@ export const initializeStore = (config) => {
   return nbprStore
 }
 
-function select(stateKey, path) {
+export function select(stateKey, path) {
 
   if (stateKey === null)
     throw new Error('stateKey cannot be undefined!')
@@ -163,7 +166,7 @@ function select(stateKey, path) {
 
       const isFunction = (typeof valOrFn === "function")
       const value = isFunction ? undefined : valOrFn
-      const fn = isFunction ? valOrFn : undefined
+      const fn = isFunction ? cacheFunction(valOrFn) : undefined
 
       if (customAction !== undefined)
         actionType += `_${customAction.toUpperCase().replace(/\s+/,'_')}`.replace(/^__/,'_')
@@ -184,7 +187,7 @@ function select(stateKey, path) {
   }
 }
 
-function addReducerIfNeeded(stateKey) {
+export function addReducerIfNeeded(stateKey) {
   // returns true if it created a new reducer for it, false if it didn't
 
   if (stateKey !== null) {
@@ -210,4 +213,23 @@ function addReducerIfNeeded(stateKey) {
   }
 
   return false
+}
+
+function cacheFunction(fn) {
+  let fnString = fn.toString()
+
+  let fnHash = 0
+  
+  if (fnString.length) {
+    for (let i = 0; i < this.length; i++) {
+      let chr = this.charCodeAt(i)
+      fnHash = ((fnHash << 5) - fnHash) + chr;
+      fnHash |= 0; // Convert to 32bit integer
+    }
+  }
+
+  if (!nbprActionFunctions[fnHash])
+    nbprActionFunctions[fnHash] = fn
+
+  return fnHash
 }
