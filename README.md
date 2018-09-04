@@ -188,14 +188,14 @@ Selects the state you're going to use and returns an object with modification me
 `.set()`: a method to set the state you just selected
 
 ---
-### `store.select(...).set(valueOrFunction, [asAction])`
+### `store.select(...).set(valueOrFunction, [actionCustomization])`
 
 Sets the selected state's path to the value specified. If path is not set, replaces the state with the value specified.
 
 #### Arguments
 
 `valueOrFunction (value OR Function)`: If this is a function, it is run, and the value returned is the new state. Function is passed the old state as an argument.
-`asAction (string)`: A string to describe the action you're doing. Used as the action type for redux, and appended to the reducerless prefix. 
+`actionCustomization (string OR Object)`: If this is a string, it is appended to the default type to make it more specific. If it is an object, the properties on the object are merged into the action.
 
 #### Examples
 
@@ -206,9 +206,9 @@ Sets the selected state's path to the value specified. If path is not set, repla
 store.select('developers').set({
   "1": { name: "Nathaniel", title: "Web Developer" }
   "2": { name: "Eddie", title: "Web Developer" }
-}, "EDDIE_NATHANIEL")
+}, "SET_DEVELOPERS_EDDIE_NATHANIEL")
 
-// Action: NO_BOILERPLATE_REDUX_ACTION_DEVELOPERS_EDDIE_NATHANIEL
+// Action Type: SET_DEVELOPERS_EDDIE_NATHANIEL
 // 'developers': {
 //   "1": { name: "Nathaniel", title: "Web Developer" }
 //   "2": { name: "Eddie", title: "Web Developer" }
@@ -230,7 +230,7 @@ store.select('developers').set((developers) => {
   return developers
 })
 
-// Action: NO_BOILERPLATE_REDUX_ACTION_DEVELOPERS
+// Action: SET_DEVELOPERS
 // 'developers': {
 //   "1": { name: "Nathaniel Hutchins", title: "Web Developer" }
 //   "2": { name: "Eddie", title: "Web Developer" }
@@ -252,7 +252,7 @@ store
     "COMPLETE_TODO"
   )
 
-// Action: NO_BOILERPLATE_REDUX_ACTION_TODOS_COMPLETE_TODO
+// Action: SET_TODOS_COMPLETE_TODO
 // 'todos': [
 //   { text: "add support for middleware", complete: false },
 //   { text: "take a break from writing code", complete: false }
@@ -280,6 +280,7 @@ store.select('music').set((music) => {
   return music
 })
 
+// Action: SET_MUSIC
 // 'music': {
 //   "This Must Be The Place": {
 //     artist: "Talking Heads", plays: 12, skips: 0

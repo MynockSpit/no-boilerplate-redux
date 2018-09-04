@@ -5,11 +5,9 @@ import {
 import {
   get as _get,
   cloneDeep as _cloneDeep,
+  merge as _merge,
   set as _set
 } from 'lodash-es'
-
-// this prefex SHOULD make sure that no reducerless reducers and normal reducers collide
-const nbprActionPrefix = 'NO_BOILERPLATE_REDUX_ACTION'
 
 // store a map of reducers so we can add reducers to it on the fly
 const nbprReducers = {}
@@ -31,20 +29,17 @@ const nbprActionFunctions = {}
 // action --> reducerRouter --> reducerlessReducer
 // OR
 // action --> reducerRouter --> normalReducer
-export function reducerFactory(stateKey, normalReducer) {
-
-  let setAction = `${nbprActionPrefix}_${stateKey}`.toUpperCase()
-
+export function reducerFactory(normalReducer) {
   // reducerRouter is a small function that decides which reducer to use
   // does it use the normalReducer? (preferred if it exists)
   // or the reducerlessReducer (always used if normalReducer doesn't)
   function reducerRouter(state, action) {
-    // if there's a normal reducer and the action isn't prefixed, use the normal reducer
-    if (normalReducer && (action.type).indexOf(nbprActionPrefix) === -1)
+    // if there's a normal reducer and the action isn't marked, use the normal reducer
+    if (normalReducer && !_get(action, 'meta.nbpr', false))
       return normalReducer(state, action)
 
     // otherwise, reducerless!
-    return reducerlessReducer(setAction, state, action)
+    return reducerlessReducer(state, action)
   }
 
   // indicate that this reducer has been reducerless'd
@@ -54,14 +49,14 @@ export function reducerFactory(stateKey, normalReducer) {
   return reducerRouter
 }
 
-export function reducerlessReducer(setAction, state = null, action) {
+export function reducerlessReducer(state = null, action) {
   const {
     path = null,
       value = null,
       fn = null
   } = _get(action, 'payload', {})
 
-  if ((action.type).indexOf(setAction) != -1) {
+  if (_get(action, 'meta.nbpr', false)) {
     // REDUCERLESS_ACTION sets the value (works best on anything that isn't an array)
     // Operates on either a path you pass in (and modifies a part) of the state or 
     // replaces the entire state without a path
@@ -157,28 +152,38 @@ export function select(stateKey, path) {
   if (stateKey === null)
     throw new Error('stateKey cannot be undefined!')
 
-  let actionType = `${nbprActionPrefix}_${stateKey}`.toUpperCase()
-
   return {
-    set(valOrFn, customAction) {
+    set(valOrFn, actionCustomization = {}) {
 
       addReducerIfNeeded(stateKey)
 
-      const isFunction = (typeof valOrFn === "function")
-      const value = isFunction ? undefined : valOrFn
-      const fn = isFunction ? cacheFunction(valOrFn) : undefined
+      let value = valOrFn
+      let fn = undefined
 
-      if (customAction !== undefined)
-        actionType += `_${customAction.toUpperCase().replace(/\s+/,'_')}`.replace(/^__/,'_')
-
-      let action = {
-        type: actionType,
-        payload: {
-          path,
-          value,
-          fn
-        }
+      if (typeof valOrFn === "function") {
+        value = undefined
+        fn = cacheFunction(valOrFn)
       }
+
+      let type = `SET_${stateKey.toUpperCase()}`
+      let customProperties = actionCustomization
+
+      if (typeof actionCustomization === 'string') {
+        type += `_${actionCustomization}`
+        customProperties = {}
+      }
+
+      const canOverride = { type }
+      const cantOverride = {
+        payload: { path, value, fn },
+        meta: { nbpr: true }
+      }
+
+      const action = _merge(
+        canOverride,
+        customProperties,
+        cantOverride
+      )
 
       nbprStore.dispatch(action)
 
@@ -194,7 +199,7 @@ export function addReducerIfNeeded(stateKey) {
 
     // if this store doesn't exist, create one
     if (!nbprReducers[stateKey]) {
-      nbprReducers[stateKey] = reducerFactory(stateKey)
+      nbprReducers[stateKey] = reducerFactory()
   
       if (nbprStore)
         nbprStore.replaceReducer(nbprReducerCombiner(nbprReducers))
@@ -203,7 +208,7 @@ export function addReducerIfNeeded(stateKey) {
     }
     // if this does exist, but isn't reducerless, make a reducerless reducer for it
     else if (!nbprReducers[stateKey].reducerless) {
-      nbprReducers[stateKey] = reducerFactory(stateKey, nbprReducers[stateKey])
+      nbprReducers[stateKey] = reducerFactory(nbprReducers[stateKey])
 
       if (nbprStore)
         nbprStore.replaceReducer(nbprReducerCombiner(nbprReducers))
