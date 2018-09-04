@@ -65,11 +65,28 @@ Most of the following you'll recognize from setting up Redux.
 
 ### `initializeStore({ reducers, reducerCombiner, preloadedState, enhancer })`
 
-Initializes the Redux store. Uses very similar arguments to redux's `createStore`.
+Initializes the Redux store for use with no-boilerplate-redux.
 
 All argument accepted are things you already know about in redux, so here's a quick primer on how they may have changed.
  
-The first argument in `createStore` (`reducer`) has been split into two parts, `reducers` and `reducerCombiner`. In simplest terms possible, `reducers` is the object that gets passed into `combineReducers` and `reducerCombiner` is (a function like) `combineReducers`.
+The first argument in `createStore` has been split into two parts, `reducers` and `reducerCombiner`. `reducers` is a plain object that maps to your reducer functions and reducerCombiner is a function that takes that object and returns a "root reducer". In a default case, `reducerCombiner` is the 
+
+```js
+let myReducers = {
+  todos: todoReducerFn,
+  reminders: remindersReducerFn,
+  event: eventsReducerFn
+}
+
+createStore(
+  combineReducers(myReducers)
+)
+// becomes
+initializeStore(
+  reducers: myReducers,
+  reducerCombiner: combineReducers
+)
+```
 
 Unless you use a module that modifies the reducer AFTER combining them (e.g. `connected-react-router`), you shouldn't need to change `reducerCombiner`.
  
@@ -79,11 +96,15 @@ The second and third arguments (`preloadedState` and `enhancers`) are merely rep
 
 *See [createStore#arguments](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments) for more info.*
 
+The combineReducers helper function turns an object whose values are different reducing functions into a single reducing function you can pass to createStore.
+
+
+
 #### Arguments
-`reducers (Object)`: undefined or null (or empty object) indicated that all reducers are to be defined by no-boilerplate-redux; an object that maps to vanilla redux reducers will set up those reducers as normal and add a no-boilerplate-redux reducer for each.  
-`reducerCombiner (Function)`: a function that accepts an object of reducers and generates a root reducer. e.g. `(reducers) => functionThatMakesRootReducer(reducers)`  
-`preloadedState (Object)`: a plain object where keys map reducers and values. [(more info)](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments)  
-`enhancer (Function)`: enhance your store with third-party plugins. [(more info)](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments)
+`[reducers] (Object)`: An object whose values are standard Redux reducers. Not necessary if you have no standard Redux reducers. 
+`[reducerCombiner=combineReducers] (Function)`: A function that turns an object of reducers into a single reducing function. Not necessary unless using a library that injects reducers by way of functions. (e.g. connected-react-router)`  
+`[preloadedState] (Object)`: The initial state. Identical to the `preloadedState` argument in Redux's `createStore`.[(more info)](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments)  
+`[enhancer] (Function)`: The store enhancer. Identical to the `enhancer` argument in Redux's `createStore`. [(more info)](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments)
 
 #### Returns
 `store`: the store object created; used to `.select` parts of state and then `.set` them later.
@@ -114,9 +135,8 @@ export const store = initializeStore({
 import { initializeStore } from 'no-boilerplate-redux'
 import { albums } from './reducers'
 
-export const store = initializeStore({
-  reducers: { albums }, 
-  preloadedState: {
+let myReducers = { albums }
+let myPreloadedState = {
     albums: [{
       title: 'Talking Heads: 77',
       artist: 'Talking Heads',
@@ -133,19 +153,23 @@ export const store = initializeStore({
       }
     }
   }
+
+export const store = initializeStore({
+  reducers: myReducers, 
+  preloadedState: myPreloadedState
 })
 ```
 
 ```js
-// example use with connected-react-router
+// example use with react-route (using connected-react-router)
 
 import { initializeStore } from 'no-boilerplate-redux'
-import baseReducers from './reducers'
+import myReducers from './reducers'
 import { applyMiddleware, compose, combineReducers } from 'redux'
 import { routerMiddleware, connectRouter } from 'connected-react-router'
 
 export const store = initializeStore({
-  reducers: baseReducers,
+  reducers: myReducers,
   reducerCombiner: (reducers) => connectRouter(history)(combineReducers(reducers)),
   enhancer: compose(applyMiddleware(routerMiddleware(history)))
 })
