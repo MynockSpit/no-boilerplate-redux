@@ -83,6 +83,7 @@ no-boilerplate-redux sets the `nbpr` property on the `meta` object of your actio
     nbpr: 'developers' // don't overwrite this!
   }
 }
+```
 
 ## API Reference
 
