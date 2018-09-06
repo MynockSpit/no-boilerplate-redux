@@ -6,10 +6,16 @@ Never write a reducer, an action, or worry about immutability again!
 
 Most of the following you'll recognize from setting up Redux.
 
-1. Import `initializeStore` from `no-boilerplate-redux` in your app, and use it like redux's `createStore`.
+1. Install no-boilerplate-redux (and redux if you don't have it)
+
+    ```sh
+    npm install --save no-boilerplate-redux
+    ```
+
+2. Import `initializeStore` from `no-boilerplate-redux` in your app, and use it like redux's `createStore`.
 
     ```jsx
-    // index.jsx
+    /* index.jsx */
 
     // import initializeStore
     import { initializeStore } from 'no-boilerplate-redux'
@@ -26,10 +32,10 @@ Most of the following you'll recognize from setting up Redux.
     )
     ```
 
-2. Connect your React components to your state. This causes the "magic" auto-update we're familiar with from React. (example uses [`react-redux`](https://github.com/reduxjs/react-redux))
+3. Connect your React components to your state. This causes the "magic" auto-update we're familiar with from React. (example uses [`react-redux`](https://github.com/reduxjs/react-redux))
 
     ```jsx
-    // MyComponent.jsx
+    /* MyComponent.jsx */
 
     // import the connect function from react-redux
     import { connect } from 'react-redux'
@@ -42,10 +48,10 @@ Most of the following you'll recognize from setting up Redux.
     export default connect(mapStateToProps)(MyComponent)
     ```
 
-3. Import your `store` and use it in your components (or in a services file).
+4. Import your `store` and use it in your components (or in a services file).
 
     ```jsx
-    // MyComponent.jsx or MyService.js or AnythingElse.really
+    /* MyComponent.jsx or MyService.js or AnythingElse.really */
 
     import { store } from './index.js' // this is the store you created
 
@@ -61,7 +67,24 @@ Most of the following you'll recognize from setting up Redux.
       .set('Web Developer')
     ```
 
-## Documentation
+## A note on Middleware
+
+no-boilerplate-redux sets the `nbpr` property on the `meta` object of your actions. If you use a middleware and overwrite the meta tag or change the `nbpr` property, your no-boilerplate-redux actions won't fire. Be careful you don't overwrite this tag!
+
+```js
+// example action
+{
+  type: "SET_DEVELOPERS",
+  payload: {
+    value: 2
+    path: "Nathaniel Hutchins"
+  },
+  meta: {
+    nbpr: 'developers' // don't overwrite this!
+  }
+}
+
+## API Reference
 
 ### `initializeStore({ reducers, reducerCombiner, preloadedState, enhancer })`
 
@@ -78,14 +101,15 @@ let myReducers = {
   event: eventsReducerFn
 }
 
+// redux's createStore
 createStore(
   combineReducers(myReducers)
 )
-// becomes
-initializeStore(
+// becomes ...
+initializeStore({
   reducers: myReducers,
   reducerCombiner: combineReducers
-)
+})
 ```
 
 Unless you use a module that modifies the reducer AFTER combining them (e.g. `connected-react-router`), you shouldn't need to change `reducerCombiner`.
