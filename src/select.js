@@ -1,9 +1,5 @@
 import { addReducerIfNeeded } from './add-reducer-if-needed'
-import {
-  merge as _merge,
-  set as _set,
-  cloneDeep as _cloneDeep
-} from 'lodash-es'
+import _ from 'lodash'
 
 import { cacheFn, getFn } from './fn-cache.js'
 
@@ -41,7 +37,7 @@ export function select(stateKey, path) {
         meta: { nbpr: stateKey }
       }
 
-      const action = _merge(
+      const action = _.merge(
         canOverride,
         customProperties,
         cantOverride
@@ -49,8 +45,8 @@ export function select(stateKey, path) {
 
       store.dispatch(action)
 
-      return _set(
-        _cloneDeep(action),
+      return _.set(
+        _.cloneDeep(action),
         'payload.fn',
         getFn(fn)
       )

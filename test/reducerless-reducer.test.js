@@ -4,7 +4,7 @@ describe('reducerlessReducer', () => {
   it("doesn't touch the state if the action doesn't have the nbpr meta", () => {
     const beginState = 1
     
-    const testState = reducerlessReducer(beginState, {  
+    const testState = reducerlessReducer('StateKey', beginState, {  
       type: 'SET_STORE',
       payload: {
         value: 2
@@ -14,16 +14,30 @@ describe('reducerlessReducer', () => {
     expect(testState).toBe(beginState)
   })
 
-  it("correctly applies a pathless value set", () => {
+  it("doesn't touch the state if the action has the wrong nbpr meta", () => {
     const beginState = 1
-    const endState = 2
-
-    const testState = reducerlessReducer(beginState, {  
+    
+    const testState = reducerlessReducer('CorrectStateKey', beginState, {  
       type: 'SET_STORE',
       payload: {
         value: 2
       },
-      meta: { nbpr: true }
+      meta: { nbpr: 'WrongStateKey' }
+    })
+
+    expect(testState).toBe(beginState)
+  })
+
+  it("correctly applies a pathless value set", () => {
+    const beginState = 1
+    const endState = 2
+
+    const testState = reducerlessReducer('StateKey', beginState, {  
+      type: 'SET_STORE',
+      payload: {
+        value: 2
+      },
+      meta: { nbpr: 'StateKey' }
     })
 
     expect(testState).toEqual(endState)
@@ -33,13 +47,13 @@ describe('reducerlessReducer', () => {
     const beginState = { todos: { count: 1 } }
     const endState = { todos: { count: 2 } }
 
-    const testState = reducerlessReducer(beginState, {
+    const testState = reducerlessReducer('StateKey', beginState, {
       type: 'SET_STORE',
       payload: {
         path: 'todos.count',
         value: 2
       },
-      meta: { nbpr: true }
+      meta: { nbpr: 'StateKey' }
     })
 
     expect(testState).toEqual(endState)
@@ -49,12 +63,12 @@ describe('reducerlessReducer', () => {
     const beginState = 1
     const endState = 2
 
-    const testState = reducerlessReducer(beginState, {  
+    const testState = reducerlessReducer('StateKey', beginState, {  
       type: 'SET_STORE',
       payload: {
         fn: (state) => state + 1
       },
-      meta: { nbpr: true }
+      meta: { nbpr: 'StateKey' }
     })
 
     expect(testState).toEqual(endState)
@@ -64,13 +78,13 @@ describe('reducerlessReducer', () => {
     const beginState = { todos: { count: 1 } }
     const endState = { todos: { count: 2 } }
 
-    const testState = reducerlessReducer(beginState, {
+    const testState = reducerlessReducer('StateKey', beginState, {
       type: 'SET_STORE',
       payload: {
         path: 'todos.count',
         fn: (count) => count + 1
       },
-      meta: { nbpr: true }
+      meta: { nbpr: 'StateKey' }
     })
 
     expect(testState).toEqual(endState)
@@ -80,13 +94,13 @@ describe('reducerlessReducer', () => {
     const beginState = undefined
     const endState = { todos: { count: 2 } }
 
-    const testState = reducerlessReducer(beginState, {
+    const testState = reducerlessReducer('StateKey', beginState, {
       type: 'SET_STORE',
       payload: {
         path: 'todos.count',
         value: 2
       },
-      meta: { nbpr: true }
+      meta: { nbpr: 'StateKey' }
     })
 
     expect(testState).toEqual(endState)
@@ -95,13 +109,13 @@ describe('reducerlessReducer', () => {
   it("doesn't modify state and throws error when state isn't an object and path is provided", () => {
     const beginState = 2
 
-    const testState = reducerlessReducer(beginState, {
+    const testState = reducerlessReducer('StateKey', beginState, {
       type: 'SET_STORE',
       payload: {
         path: 'todos.count',
         value: 2
       },
-      meta: { nbpr: true }
+      meta: { nbpr: 'StateKey' }
     })
 
     expect(testState).toBe(beginState)

@@ -1,7 +1,7 @@
 module.exports = {
   testURL: "http://localhost/",
   transformIgnorePatterns: [
-    "/!node_modules\\/lodash-es/"
+    "/!node_modules\\/lodash/"
   ],
   // verbose: true,
   collectCoverage: true,

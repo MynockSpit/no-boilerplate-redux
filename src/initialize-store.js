@@ -2,12 +2,7 @@ import {
   combineReducers,
   createStore as createReduxStore
 } from 'redux'
-import {
-  get as _get,
-  set as _set,
-  merge as _merge,
-  cloneDeep as _cloneDeep
-} from 'lodash-es'
+import _ from 'lodash'
 
 import { select } from './select'
 import { addReducerIfNeeded } from './add-reducer-if-needed'
@@ -34,7 +29,7 @@ export const initializeStore = (config = {}) => {
   // build reducerless reducers for each piece of the preloadedState that isn't matched already
   Object.keys(preloadedState).forEach((stateKey) => addReducerIfNeeded(stateKey, reducers))
 
-  // always need at least one reducer to start; redux_loaded is a dummy reducer that doesn't do anything except let us build an initial store; we only add it if we didn't get a baseReducer or an initialState from the user
+  // always need at least one reducer to start; redux_.loaded is a dummy reducer that doesn't do anything except let us build an initial store; we only add it if we didn't get a baseReducer or an initialState from the user
   if (!Object.keys(reducers).length)
     reducers.redux_loaded = () => true
 

@@ -1,5 +1,6 @@
 const path = require('path');
-
+const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
+ 
 const defaults = {
   entry: './src/main.js',
   output: {
@@ -16,7 +17,17 @@ const defaults = {
       amd: "redux",
       root: "redux" // indicates global variable
     }
-  }
+  },
+  module: {
+    rules: [{
+      use: 'babel-loader',
+      test: /\.js$/,
+      exclude: /node_modules/,
+    }]
+  },
+  plugins: [
+    new LodashModuleReplacementPlugin()
+  ]
 }
 
 module.exports = defaults

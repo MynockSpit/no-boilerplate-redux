@@ -2,9 +2,9 @@ import { functions, cacheFn, getFn, noOpStateFn } from '../src/fn-cache'
 
 describe('cacheFn', () => {
   const myCoolFunction = () => console.log(`I'm a badass function!`)
-  const myCoolFunctionHash = "-774605802"
+  const myCoolFunctionHash = "-1451361726"
   functions[myCoolFunctionHash] = myCoolFunction
-  const noOpStateFnHash = "1009504556"
+  const noOpStateFnHash = "1055285136"
 
   it("cacheFn correctly returns the hash", () => {
     expect(cacheFn(myCoolFunction)).toEqual(myCoolFunctionHash)

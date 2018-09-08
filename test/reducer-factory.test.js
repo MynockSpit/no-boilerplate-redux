@@ -15,7 +15,7 @@ describe('reducerFactory', () => {
 describe('reducerRouter', () => {
   it('passes the action to the normalReducer if the action isn\'t nbpr', () => {
     let normalReducer = jest.fn()
-    let reducerRouter = reducerFactory(normalReducer)
+    let reducerRouter = reducerFactory('StateKey', normalReducer)
 
     reducerRouter(null, {})
 

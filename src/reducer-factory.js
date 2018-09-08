@@ -1,4 +1,4 @@
-import { get as _get, } from 'lodash-es'
+import _ from 'lodash'
 import { reducerlessReducer } from './reducerless-reducer.js'
 
 // creates a reducerRouter
@@ -9,7 +9,7 @@ export function reducerFactory(stateKey, normalReducer) {
   // does it use the normalReducer? (preferred if it exists)
   // or the reducerlessReducer (always used if normalReducer doesn't)
   function reducerRouter(state, action) {
-    let nbprMeta = _get(action, 'meta.nbpr')
+    let nbprMeta = _.get(action, 'meta.nbpr')
     // if there's a normal reducer and the action isn't marked, use the normal reducer
     if (normalReducer && !nbprMeta)
       return normalReducer(state, action)

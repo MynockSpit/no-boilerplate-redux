@@ -24,10 +24,12 @@ describe("select(...).set(...)", () => {
     const resultantAction = {
       type: "SET_STOREKEY",
       payload: {
-        value: 2
+        path: undefined,
+        value: 2,
+        fn: undefined
       },
       meta: {
-        nbpr: true,
+        nbpr: "StoreKey",
       }
     }
 
@@ -41,10 +43,11 @@ describe("select(...).set(...)", () => {
       type: "SET_STOREKEY_CUSTOMACTIONNAME",
       payload: {
         path: "store.path",
-        value: "Set Value"
+        value: "Set Value",
+        fn: undefined,
       },
       meta: {
-        nbpr: true
+        nbpr: "StoreKey"
       }
     }
 
@@ -58,10 +61,12 @@ describe("select(...).set(...)", () => {
     const resultantAction = {
       type: "MY_TYPE",
       payload: {
+        path: undefined,
+        value: undefined,
         fn: expect.any(String)
       },
       meta: {
-        nbpr: true,
+        nbpr: "StoreKey",
         optimist: true
       }
     }
