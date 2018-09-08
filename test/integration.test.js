@@ -1,6 +1,6 @@
 import {
   initializeStore
-} from '../src/main'
+} from '../dist/no-boilerplate-redux'
 
 // test as much of the functionality that users will experience as reasonable
 

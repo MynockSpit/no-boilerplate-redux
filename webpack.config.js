@@ -1,5 +1,4 @@
 const path = require('path');
-const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
  
 const defaults = {
   entry: './src/main.js',
@@ -11,23 +10,9 @@ const defaults = {
   },
   externals: {
     // not wrapping redux b/c you can't use this without redux anyways, so the user necessarily must have it
-    redux: {
-      commonjs: "redux",
-      commonjs2: "redux",
-      amd: "redux",
-      root: "redux" // indicates global variable
-    }
-  },
-  module: {
-    rules: [{
-      use: 'babel-loader',
-      test: /\.js$/,
-      exclude: /node_modules/,
-    }]
-  },
-  plugins: [
-    new LodashModuleReplacementPlugin()
-  ]
+    redux: "redux",
+    lodash: "lodash"
+  }
 }
 
 module.exports = defaults
