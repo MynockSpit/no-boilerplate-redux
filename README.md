@@ -5,21 +5,31 @@ Never write a reducer, an action, or worry about immutability again!
 <!-- toc -->
 
 - [Usage (with React)](#usage-with-react)
-- [Integration with Redux Dev Tools](#integration-with-redux-dev-tools)
-  * [Basic integration example (no middlewares)](#basic-integration-example-no-middlewares)
-  * [Advanced integration example (with middlewares)](#advanced-integration-example-with-middlewares)
+- [Integrations](#integrations)
+  * [Integration with Redux Dev Tools](#integration-with-redux-dev-tools)
+    + [Basic integration example (no middlewares)](#basic-integration-example-no-middlewares)
+    + [Advanced integration example (with middlewares)](#advanced-integration-example-with-middlewares)
+  * [Integration with React Router (using `connected-react-router`)](#integration-with-react-router-using-connected-react-router)
 - [A note on Middleware](#a-note-on-middleware)
 - [API Reference](#api-reference)
   * [`initializeStore({ reducers, reducerCombiner, preloadedState, enhancer })`](#initializestore-reducers-reducercombiner-preloadedstate-enhancer-)
     + [Arguments](#arguments)
     + [Returns](#returns)
     + [Examples](#examples)
+      - [Basic store](#basic-store)
+      - [Store with vanilla reducers](#store-with-vanilla-reducers)
+      - [Store with vanilla reducers and base state](#store-with-vanilla-reducers-and-base-state)
+      - [Store with vanilla reducers and react-router](#store-with-vanilla-reducers-and-react-router)
   * [`store.select(storePart, [path])`](#storeselectstorepart-path)
     + [Arguments](#arguments-1)
     + [Returns](#returns-1)
   * [`store.select(...).set(valueOrFunction, [actionCustomization])`](#storeselectsetvalueorfunction-actioncustomization)
     + [Arguments](#arguments-2)
+    + [Returns](#returns-2)
     + [Examples](#examples-1)
+      - [Value Set](#value-set)
+      - [Function Set](#function-set)
+      - [Customized Action](#customized-action)
 
 <!-- tocstop -->
 
@@ -88,24 +98,31 @@ Most of the following you'll recognize from setting up Redux.
       .set('Web Developer')
     ```
 
-## Integration with Redux Dev Tools
+## Integrations
+
+Integrating with redux (and no-boilerplate-redux) often as simple as customizing the initial configuration. Where vanilla redux uses `createStore`, `no-boilerplate-redux` uses `initializeStore`. The parameters these two functions take are fundamentally the same. In cases where only initial configuration is need, no-boilerplate-redux is no harder to integrate with than vanilla redux.
+
+See the docs on [`initializeStore`](#initializestore-reducers-reducercombiner-preloadedstate-enhancer-) for details on what's different.
+
+### Integration with Redux Dev Tools
 
 Redux Dev Tools integrates by providing an enhancer. Use `initializeStore`'s `enhancer` prop to set it. 
 
-### Basic integration example (no middlewares)
+#### Basic integration example (no middlewares)
 
 ```js
-  const store = createStore({
-    enhancer: window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-  });
+const store = initializeStore({
+  enhancer: window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+});
 ```
 
-### Advanced integration example (with middlewares)
+#### Advanced integration example (with middlewares)
 
 ```js
 import { createStore, applyMiddleware, compose } from 'redux';
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
+
 export const store = initializeStore({
   enhancer: composeEnhancers(
     applyMiddleware(...middleware)
@@ -114,6 +131,24 @@ export const store = initializeStore({
 ```
 
 See [DevTools with Redux](https://github.com/zalmoxisus/redux-devtools-extension#1-with-redux) for more info.
+
+### Integration with React Router (using `connected-react-router`)
+
+This example uses connected-react-router to integrate with redux.
+
+```js
+import { applyMiddleware, compose, combineReducers } from 'redux'
+import { initializeStore } from 'no-boilerplate-redux'
+import { connectRouter, routerMiddleware } from 'connected-react-router'
+import { createBrowserHistory } from 'history'
+
+export const history = createBrowserHistory(...config)
+
+export const store = initializeStore({
+  reducerCombiner: (reducers) => connectRouter(history)(combineReducers(reducers)),
+  enhancer: compose(applyMiddleware(routerMiddleware(history))),
+})
+```
 
 ## A note on Middleware
 
@@ -139,76 +174,64 @@ no-boilerplate-redux sets the `nbpr` property on the `meta` object of your actio
 
 Initializes the Redux store for use with no-boilerplate-redux.
 
-All argument accepted are things you already know about in redux, so here's a quick primer on how they may have changed.
- 
-The first argument in `createStore` has been split into two parts, `reducers` and `reducerCombiner`. `reducers` is a plain object that maps to your reducer functions and reducerCombiner is a function that takes that object and returns a "root reducer". In a default case, `reducerCombiner` is the 
+#### Arguments
+`[reducers={}] (Object)`: An object whose values are standard Redux reducers. Not necessary if you have no standard Redux reducers. In vanilla redux, this is the object you pass into [`combineReducers`](https://github.com/reduxjs/redux/blob/master/docs/api/combineReducers.md).
+`[reducerCombiner=combineReducers] (Function)`: A function that turns an object of reducers into a single reducing function. Not necessary unless using a library that injects reducers by way of functions. (e.g. connected-react-router) In vanilla redux, this is the function [`combineReducers`](https://github.com/reduxjs/redux/blob/master/docs/api/combineReducers.md).  
+`[preloadedState] (Object)`: The initial state. Identical to the `preloadedState` argument in Redux's `createStore`.[(more info)](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments)  
+`[enhancer] (Function)`: The store enhancer. Identical to the `enhancer` argument in Redux's `createStore`. [(more info)](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments)
+
+All argument are fundamentally the same as the arguments vanilla redux's `createStore` accepts.
+
+- `reducer`, `createStore`'s first argument, has been split into two parts, `reducers` and `reducerCombiner`. Unlike vanilla redux, both are optional. 
+- `preloadedState`, `createStore`'s second and optional argument, is identical and remains optional. See [redux's documentation](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments) for more info.
+- `enhancers`, `createStore`'s third and optional argument, is identical and remains optional. See [redux's documentation](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments) for more info.
 
 ```js
-let myReducers = {
-  todos: todoReducerFn,
-  reminders: remindersReducerFn,
-  event: eventsReducerFn
-}
-
 // redux's createStore
 createStore(
-  combineReducers(myReducers)
+  combineReducers(myReducers),
+  myBaseStateObject,
+  myCoolEnhancer
 )
+
 // becomes ...
 initializeStore({
   reducers: myReducers,
-  reducerCombiner: combineReducers
+  reducerCombiner: combineReducers,
+  preloadedState: myBaseStateObject,
+  enhancer: myCoolEnhancer
 })
 ```
-
-Unless you use a module that modifies the reducer AFTER combining them (e.g. `connected-react-router`), you shouldn't need to change `reducerCombiner`.
- 
-*See [combineReducers](https://github.com/reduxjs/redux/blob/master/docs/api/combineReducers.md) for  more details on `reducers` and how a `reducerCombiner` works.*
- 
-The second and third arguments (`preloadedState` and `enhancers`) are merely repeated here. 
-
-*See [createStore#arguments](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments) for more info.*
-
-The combineReducers helper function turns an object whose values are different reducing functions into a single reducing function you can pass to createStore.
-
-
-
-#### Arguments
-`[reducers] (Object)`: An object whose values are standard Redux reducers. Not necessary if you have no standard Redux reducers. 
-`[reducerCombiner=combineReducers] (Function)`: A function that turns an object of reducers into a single reducing function. Not necessary unless using a library that injects reducers by way of functions. (e.g. connected-react-router)`  
-`[preloadedState] (Object)`: The initial state. Identical to the `preloadedState` argument in Redux's `createStore`.[(more info)](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments)  
-`[enhancer] (Function)`: The store enhancer. Identical to the `enhancer` argument in Redux's `createStore`. [(more info)](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments)
 
 #### Returns
 `store`: the store object created; used to `.select` parts of state and then `.set` them later.
 
 #### Examples
 
+##### Basic store
 ```js
-// create a basic new store 
 import { initializeStore } from 'no-boilerplate-redux'
 
 export const store = initializeStore()
 ```
 
+##### Store with vanilla reducers
 ```js
-// create a new store with default values for todos and visibilityFilter
 import { initializeStore } from 'no-boilerplate-redux'
+import baseReducers from './reducers'
 
 export const store = initializeStore({
-  preloadedState: {
-    todos: [],
-    visibilityFilter: 'SHOW_ALL'
-  }
+  reducers: baseReducers
 })
 ```
 
+##### Store with vanilla reducers and base state
 ```js
 // create a new store with vanilla reducer for 'albums' and default values for 'albums' and 'artists'
 import { initializeStore } from 'no-boilerplate-redux'
-import { albums } from './reducers'
+import albums from './albums/reducer'
 
-let myReducers = { albums }
+let myReducers = { albums: albums }
 let myPreloadedState = {
     albums: [{
       title: 'Talking Heads: 77',
@@ -233,9 +256,8 @@ export const store = initializeStore({
 })
 ```
 
+##### Store with vanilla reducers and react-router
 ```js
-// example use with react-route (using connected-react-router)
-
 import { initializeStore } from 'no-boilerplate-redux'
 import myReducers from './reducers'
 import { applyMiddleware, compose, combineReducers } from 'redux'
@@ -258,7 +280,7 @@ Selects the state you're going to use and returns an object with modification me
 `path (string OR Array)`: The path to specific data (uses [`lodash`](https://github.com/lodash/lodash)-style paths)
 
 #### Returns
-`.set()`: a method to set the state you just selected
+`(Object)`: an object with the `.set` method (see below)
 
 ---
 ### `store.select(...).set(valueOrFunction, [actionCustomization])`
@@ -270,70 +292,63 @@ Sets the selected state's path to the value specified. If path is not set, repla
 `valueOrFunction (value OR Function)`: If this is a function, it is run, and the value returned is the new state. Function is passed the old state as an argument.
 `actionCustomization (string OR Object)`: If this is a string, it is appended to the default type to make it more specific. If it is an object, the properties on the object are merged into the action.
 
+#### Returns
+`action (Object)`: a copy of the action fired; useful for testing your Function Sets
+
 #### Examples
 
+##### Value Set
+
 ```js
-// set full state (without path)
-// given 'developers': null
+// developers: null
  
+// replace the entire developers store
 store.select('developers').set({
   "1": { name: "Nathaniel", title: "Web Developer" }
   "2": { name: "Eddie", title: "Web Developer" }
-}, "SET_DEVELOPERS_EDDIE_NATHANIEL")
+}, "EDDIE_NATHANIEL")
 
-// Action Type: SET_DEVELOPERS_EDDIE_NATHANIEL
-// 'developers': {
+// action.type: SET_DEVELOPERS_EDDIE_NATHANIEL
+// developers: {
 //   "1": { name: "Nathaniel", title: "Web Developer" }
 //   "2": { name: "Eddie", title: "Web Developer" }
 // }
-```
 
-```js
-// set full state (without path)
-// given 'developers': {
-//   "1": { name: "Nathaniel", title: "Web Developer" }
-//   "2": { name: "Eddie", title: "Web Developer" }
-// }
- 
+// use lodash-style set to deeply set data
 store.select('developers', '1.name').set("Nathaniel Hutchins")
 
-// or, if you don't like a string path
-store.select('developers').set((developers) => {
-  developers['1'].name = "Nathaniel Hutchins"
-  return developers
-})
-
-// Action: SET_DEVELOPERS
-// 'developers': {
+// action.type: SET_DEVELOPERS
+// developers: {
 //   "1": { name: "Nathaniel Hutchins", title: "Web Developer" }
 //   "2": { name: "Eddie", title: "Web Developer" }
 // }
 ```
 
+##### Function Set
+
 ```js
-// given 'todos': [
+// todos: [
 //   { text: "write documentation", complete: true },
 //   { text: "add support for middleware", complete: false },
 //   { text: "take a break from writing code", complete: false }
 // ]
 
-// delete completed todos
+// remove completed todos from the store
 store
   .select('todos')
-  .set(
-    (data) => data.filter((todo) => !todo.complete),
-    "COMPLETE_TODO"
-  )
+  .set(data => data.filter((todo) => !todo.complete))
 
-// Action: SET_TODOS_COMPLETE_TODO
-// 'todos': [
+// action.type: SET_TODOS_COMPLETE_TODO
+// todos: [
 //   { text: "add support for middleware", complete: false },
 //   { text: "take a break from writing code", complete: false }
 // ]
 ```
 
+##### Customized Action
+
 ```js
-// given 'music': {
+// music: {
 //   "This Must Be The Place": {
 //     artist: "Talking Heads", plays: 12, skips: 0
 //   },
@@ -345,16 +360,19 @@ store
 // increment play count
 store
   .select('music', '["Burning Down The House"].plays')
-  .set((plays) => plays + 1)
+  .set((plays) => plays + 1, {
+    type: "MY_COOL_ACTION_TYPE",
+    meta: {
+      logger: false
+    }
+  })
 
-// or, if you don't like a string path
-store.select('music').set((music) => {
-  music['Burning Down The House'].plays++
-  return music
-})
-
-// Action: SET_MUSIC
-// 'music': {
+// action.type: "MY_COOL_ACTION_TYPE",
+// action.meta: {
+//   logger: false
+// }
+//
+// music: {
 //   "This Must Be The Place": {
 //     artist: "Talking Heads", plays: 12, skips: 0
 //   },
