@@ -12,7 +12,6 @@ export function cacheFn(fn) {
   }
 
   let fnString = fn.toString()
-
   let fnHash = 0
 
   for (let i = 0; i < fnString.length; i++) {
@@ -21,10 +20,11 @@ export function cacheFn(fn) {
     fnHash |= 0; // Convert to 32bit integer
   }
 
-  fnHash += ''
+  // convert fnHash to a string
+  fnHash = fnHash.toString()
 
-  if (!functions[fnHash])
-    functions[fnHash] = fn
+  // cache the function
+  functions[fnHash] = fn
 
   return fnHash
 }

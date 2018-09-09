@@ -1,47 +1,23 @@
-import { functions, cacheFn, getFn, noOpStateFn } from '../src/fn-cache'
+import { cacheFn, getFn } from '../src/fn-cache'
 
-describe('cacheFn', () => {
-  const myCoolFunction = () => console.log(`I'm a badass function!`)
-  const myCoolFunctionHash = "-1451361726"
-  functions[myCoolFunctionHash] = myCoolFunction
-  const noOpStateFnHash = "1055285136"
+describe('cacheFn and getFn', () => {
 
-  it("cacheFn correctly returns the hash", () => {
-    expect(cacheFn(myCoolFunction)).toEqual(myCoolFunctionHash)
+  it ('caching and getting returns the original function', () => {
+    const myCoolFunction = () => console.log(`I'm a badass function!`)
+    const myCoolFunctionHash = cacheFn(myCoolFunction)
+    const myCoolFunctionAgain = getFn(myCoolFunctionHash)
+    
+    expect(myCoolFunctionHash).toEqual(expect.any(String))
+    expect(myCoolFunctionAgain).toBe(myCoolFunction)
   })
 
-  it("returns the noOpStateFnHash if passed a non-function", () => {
-    expect(cacheFn([])).toBe(noOpStateFnHash)
-  })
-})
-
-describe("getFn", () => {
-  const myCoolFunction = () => console.log(`I'm a badass function!`)
-  const myCoolFunctionHash = "-774605802"
-  functions[myCoolFunctionHash] = myCoolFunction
-  
-  it("gets the fn back from the hash", () => {
-    expect(getFn(myCoolFunctionHash)).toBe(myCoolFunction)
-  })
-
-  it("returns the input function if passed a function", () => {
-    const someFunction = () => console.log(`I'm some function.`)
-    expect(getFn(someFunction)).toBe(someFunction)
-  })
-
-  it("returns a dummy function if passed nothing", () => {
-    expect(getFn()).toBe(noOpStateFn)
-  })
-})
-
-describe("noOpStateFn", () => {
-  it("returns the input without modifications", () => {
-    let inputState = { todos: [ { id: 0, value: "write tests" } ] }
-    let inputStateString = JSON.stringify(inputState)
-    let outputState = noOpStateFn(inputState)
-    let outputStateString = JSON.stringify(outputState)
-
-    expect(inputState).toBe(outputState)
-    expect(inputStateString).toEqual(outputStateString)
+  it('caching and getting a non-function value returns a no-op function', () => {
+    const notAFunction = [1,2,3,4]
+    const noOpStateFunctionHash = cacheFn(notAFunction)
+    const noOpStateFunction = getFn(noOpStateFunctionHash)
+    const passThroughState = { Should: 'Be', Passed: 'Through' }
+    
+    expect(noOpStateFunctionHash).toEqual(expect.any(String))
+    expect(noOpStateFunction(passThroughState)).toBe(passThroughState)
   })
 })
