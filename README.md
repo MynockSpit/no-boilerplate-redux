@@ -2,7 +2,28 @@
 
 Never write a reducer, an action, or worry about immutability again!
 
-## How to Use (with React)
+<!-- toc -->
+
+- [Usage (with React)](#usage-with-react)
+- [Integration with Redux Dev Tools](#integration-with-redux-dev-tools)
+  * [Basic integration example (no middlewares)](#basic-integration-example-no-middlewares)
+  * [Advanced integration example (with middlewares)](#advanced-integration-example-with-middlewares)
+- [A note on Middleware](#a-note-on-middleware)
+- [API Reference](#api-reference)
+  * [`initializeStore({ reducers, reducerCombiner, preloadedState, enhancer })`](#initializestore-reducers-reducercombiner-preloadedstate-enhancer-)
+    + [Arguments](#arguments)
+    + [Returns](#returns)
+    + [Examples](#examples)
+  * [`store.select(storePart, [path])`](#storeselectstorepart-path)
+    + [Arguments](#arguments-1)
+    + [Returns](#returns-1)
+  * [`store.select(...).set(valueOrFunction, [actionCustomization])`](#storeselectsetvalueorfunction-actioncustomization)
+    + [Arguments](#arguments-2)
+    + [Examples](#examples-1)
+
+<!-- tocstop -->
+
+## Usage (with React)
 
 Most of the following you'll recognize from setting up Redux.
 
@@ -66,6 +87,33 @@ Most of the following you'll recognize from setting up Redux.
       .select('users', '["Nathaniel Hutchins"].title')
       .set('Web Developer')
     ```
+
+## Integration with Redux Dev Tools
+
+Redux Dev Tools integrates by providing an enhancer. Use `initializeStore`'s `enhancer` prop to set it. 
+
+### Basic integration example (no middlewares)
+
+```js
+  const store = createStore({
+    enhancer: window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+  });
+```
+
+### Advanced integration example (with middlewares)
+
+```js
+import { createStore, applyMiddleware, compose } from 'redux';
+
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
+export const store = initializeStore({
+  enhancer: composeEnhancers(
+    applyMiddleware(...middleware)
+  ),
+})
+```
+
+See [DevTools with Redux](https://github.com/zalmoxisus/redux-devtools-extension#1-with-redux) for more info.
 
 ## A note on Middleware
 
