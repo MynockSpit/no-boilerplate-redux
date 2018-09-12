@@ -5,28 +5,26 @@ export function noOpStateFn(state) {
   return state
 }
 
-export function cacheFn(fn) {
+export function storeFn(fn) {
   if (typeof fn !== 'function') {
     console.warn('WARNING: Ignoring an attempt to cache a non-function.')
     fn = noOpStateFn
   }
 
-  let fnString = fn.toString()
-  let fnHash = 0
+  let fnBody = `// fn: ${+new Date()}-${generateRandomNumber(8)}\n` + fn.toString()
 
-  for (let i = 0; i < fnString.length; i++) {
-    let chr = fnString.charCodeAt(i)
-    fnHash = ((fnHash << 5) - fnHash) + chr;
-    fnHash |= 0; // Convert to 32bit integer
-  }
+  functions[fnBody] = fn
 
-  // convert fnHash to a string
-  fnHash = fnHash.toString()
+  return fnBody
+}
 
-  // cache the function
-  functions[fnHash] = fn
-
-  return fnHash
+export function generateRandomNumber (length) {
+  return parseInt(
+    new Array(length)
+      .fill('')
+      .map(() => Math.floor(Math.random() * 10))
+      .join('')
+    )
 }
 
 // get the function

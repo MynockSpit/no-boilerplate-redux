@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { getFn } from './fn-cache.js'
+import { getFn } from './fn-store.js'
 
 export function reducerlessReducer(stateKey, state = null, action) {
   const {

@@ -1,10 +1,10 @@
-import { cacheFn, getFn } from '../src/fn-cache'
+import { storeFn, getFn } from '../src/fn-store'
 
-describe('cacheFn and getFn', () => {
+describe('storeFn and getFn', () => {
 
   it ('caching and getting returns the original function', () => {
     const myCoolFunction = () => console.log(`I'm a badass function!`)
-    const myCoolFunctionHash = cacheFn(myCoolFunction)
+    const myCoolFunctionHash = storeFn(myCoolFunction)
     const myCoolFunctionAgain = getFn(myCoolFunctionHash)
     
     expect(myCoolFunctionHash).toEqual(expect.any(String))
@@ -13,7 +13,7 @@ describe('cacheFn and getFn', () => {
 
   it('caching and getting a non-function value returns a no-op function', () => {
     const notAFunction = [1,2,3,4]
-    const noOpStateFunctionHash = cacheFn(notAFunction)
+    const noOpStateFunctionHash = storeFn(notAFunction)
     const noOpStateFunction = getFn(noOpStateFunctionHash)
     const passThroughState = { Should: 'Be', Passed: 'Through' }
     

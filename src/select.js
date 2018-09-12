@@ -1,7 +1,7 @@
 import { addReducerIfNeeded } from './add-reducer-if-needed'
 import _ from 'lodash'
 
-import { cacheFn, getFn } from './fn-cache.js'
+import { storeFn, getFn } from './fn-store'
 
 export function select(stateKey, path) {
 
@@ -20,7 +20,7 @@ export function select(stateKey, path) {
 
       if (typeof valOrFn === "function") {
         value = undefined
-        fn = cacheFn(valOrFn)
+        fn = storeFn(valOrFn)
       }
 
       let type = `SET_${stateKey.toUpperCase()}`
