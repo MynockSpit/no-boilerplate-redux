@@ -21,7 +21,7 @@ export function reducerlessReducer(stateKey, state = null, action) {
         newState = {}
 
       if (typeof newState !== "object") {
-        console.error(`Could not set ${path}: ${state} must be an object.`)
+        console.error(`Could not set path ${path}: state must be an object, got ${state}.`)
 
         // setting newState back to state to prevent rerenders without changes
         newState = state
