@@ -1,5 +1,5 @@
 const path = require('path');
- 
+
 const defaults = {
   entry: './src/main.js',
   output: {
@@ -12,6 +12,17 @@ const defaults = {
     // not wrapping redux b/c you can't use this without redux anyways, so the user necessarily must have it
     redux: "redux",
     lodash: "lodash"
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader"
+        }
+      }
+    ]
   }
 }
 

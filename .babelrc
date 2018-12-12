@@ -1,4 +1,13 @@
 {
-  "presets": ["@babel/preset-env", "@babel/preset-react"],
+  "presets": [
+    [ "@babel/preset-env", 
+      {
+        "targets": {
+          "ie": "8"
+        }
+      }
+    ], 
+    "@babel/preset-react"
+  ],
   "plugins": ["transform-export-extensions"]
 }
