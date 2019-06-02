@@ -30,6 +30,11 @@ Never write a reducer, an action, or worry about immutability again!
       - [Value Set](#value-set)
       - [Function Set](#function-set)
       - [Customized Action](#customized-action)
+  * [`store.set(valueOrFunction, [actionCustomization])`](#storesetvalueorfunction-actioncustomization)
+    + [Arguments](#arguments-3)
+    + [Examples](#examples-2)
+      - [Value Set](#value-set-1)
+      - [Function Set](#function-set-1)
 
 <!-- tocstop -->
 
@@ -96,6 +101,12 @@ Most of the following you'll recognize from setting up Redux.
     store
       .select('users', '["Nathaniel Hutchins"].title')
       .set('Web Developer')
+
+    store
+      .set(store => {
+        store.username = "MynockSpit"
+        return store
+      })
     ```
 
 ## Integrations
@@ -283,6 +294,7 @@ Selects the state you're going to use and returns an object with modification me
 `(Object)`: an object with the `.set` method (see below)
 
 ---
+
 ### `store.select(...).set(valueOrFunction, [actionCustomization])`
 
 Sets the selected state's path to the value specified. If path is not set, replaces the state with the value specified.
@@ -379,5 +391,99 @@ store
 //   "Burning Down The House": {
 //     artist: "Talking Heads", plays: 9, skips: 0
 //   }
+// }
+```
+
+---
+
+### `store.set(valueOrFunction, [actionCustomization])`
+
+Sets the entire store to the value specified (or returned).
+
+#### Arguments
+
+`valueOrFunction (value OR Function)`: If this is a function, it is run, and the value returned is the new state. Function is passed the old state as an argument.
+`actionCustomization (string OR Object)`: If this is a string, it is appended to the default type to make it more specific. If it is an object, the properties on the object are merged into the action.
+
+#### Examples
+
+##### Value Set
+
+```js
+// initial store: {
+//   developers: null
+// }
+ 
+// replace the entire developers store
+store.set({
+  developers: {
+    "1": { name: "Nathaniel", title: "Web Developer" }
+    "2": { name: "Eddie", title: "Web Developer" }
+  }
+}, "EDDIE_NATHANIEL")
+
+// action.type: SET_DEVELOPERS_EDDIE_NATHANIEL
+// final store: {
+//   developers: {
+//     "1": { name: "Nathaniel", title: "Web Developer" }
+//     "2": { name: "Eddie", title: "Web Developer" }
+//   }
+// }
+
+// use lodash-style set to deeply set data
+store.set({
+  developers: {
+    "1": { name: "Nathaniel", title: "Web Developer" }
+  },
+  username: "MynockSpit"
+})
+
+// two actions fired: SET_DEVELOPERS and SET_USERNAME
+// final store: {
+//   developers: {
+//     "1": { name: "Nathaniel Hutchins", title: "Web Developer" }
+//     "2": { name: "Eddie", title: "Web Developer" }
+//   }
+//   username: "MynockSpit"
+// }
+```
+
+##### Function Set
+
+```js
+// initial store: {
+//   todos: [
+//     { text: "write documentation", complete: true },
+//     { text: "add support for middleware", complete: false },
+//     { text: "take a break from writing code", complete: false }
+//   ]
+// }
+
+// remove completed todos from the store
+store.set(store => {
+  store.todos = store.todos.filter((todo) => !todo.complete)
+  return store
+})
+
+// action.type: SET_TODOS
+// final store: {
+//   todos: [
+//     { text: "add support for middleware", complete: false },
+//     { text: "take a break from writing code", complete: false }
+//   ]
+// }
+
+
+// entirely re-write store
+store.set(store => {
+  return {
+    username: "MynockSpit"
+  }
+})
+
+// two actions fired: SET_TODOS & SET_USERNAME
+// final store: {
+//   todos: null,
+//   username: "MynockSpit"
 // }
 ```

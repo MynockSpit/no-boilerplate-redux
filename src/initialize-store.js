@@ -5,6 +5,7 @@ import {
 import _ from 'lodash'
 
 import { select } from './select'
+import { set } from './set'
 import { addReducerIfNeeded } from './add-reducer-if-needed'
 
 /**
@@ -40,6 +41,7 @@ export const initializeStore = (config = {}) => {
   );
 
   store.select = select.bind(store)
+  store.set = set.bind(store)
   store.reducers = reducers
   store.reducerCombiner = reducerCombiner
 

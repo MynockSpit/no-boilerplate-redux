@@ -1,6 +1,5 @@
-import {
-  initializeStore
-} from '../dist/no-boilerplate-redux'
+// import { initializeStore } from '../dist/no-boilerplate-redux'
+import { initializeStore } from '../src/initialize-store'
 
 // test as much of the functionality that users will experience as reasonable
 
@@ -38,14 +37,9 @@ describe('basic store test', () => {
 
     expect(store.getState()).toEqual({
       redux_loaded: true,
-      todos: [{
-          id: 0,
-          value: "write unit tests"
-        },
-        {
-          id: 1,
-          value: "write integ tests"
-        }
+      todos: [
+        { id: 0, value: "write unit tests" },
+        { id: 1, value: "write integ tests" }
       ]
     })
   })
@@ -55,14 +49,9 @@ describe('basic store test', () => {
 
     expect(store.getState()).toEqual({
       redux_loaded: true,
-      todos: [{
-          id: 0,
-          value: "finish writing unit tests"
-        },
-        {
-          id: 1,
-          value: "write integ tests"
-        }
+      todos: [
+        { id: 0, value: "finish writing unit tests" },
+        { id: 1, value: "write integ tests" }
       ]
     })
   })
@@ -182,6 +171,94 @@ describe('store with preloadedState and functions', () => {
           ]
         }
       }
+    })
+  })
+})
+
+describe("store can be modified using `set` pattern", () => {
+  test("using a fn and modifying the `store` object performs a merge", () => {
+    let store = initializeStore({
+      preloadedState: {
+        todos: [
+          { id: 0, value: "finish writing unit tests" },
+          { id: 1, value: "write integ tests" }
+        ]
+      }
+    })
+    let dispatch = jest.spyOn(store, 'dispatch')
+
+    // update using a function
+    store.set((state) => {
+      state.username = 'MynockSpit'
+      state.isAuthenticated = true
+
+      return state
+    })
+
+    expect(dispatch).toHaveBeenCalledTimes(2)
+    expect(store.getState()).toEqual({
+      todos: [
+        { id: 0, value: "finish writing unit tests" },
+        { id: 1, value: "write integ tests" }
+      ],
+      username: 'MynockSpit',
+      isAuthenticated: true
+    })
+  })
+
+  // confirm that using a fn and returning an object replaces the store
+  test("using a fn and returning an object replaces the store", () => {
+    let store = initializeStore({
+      preloadedState: {
+        todos: [
+          { id: 0, value: "finish writing unit tests" },
+          { id: 1, value: "write integ tests" }
+        ]
+      }
+    })
+    let dispatch = jest.spyOn(store, 'dispatch')
+
+    // update using a function
+    store.set(() => {
+      return {
+        username: 'MynockSpit',
+        isAuthenticated: true
+      }
+    })
+
+    expect(dispatch).toHaveBeenCalledTimes(3)
+    expect(store.getState()).toEqual({
+      todos: null,
+      username: 'MynockSpit',
+      isAuthenticated: true
+    })
+  })
+
+  test("using an object performs shallow merge", () => {
+    let store = initializeStore({
+      preloadedState: {
+        todos: [
+          { id: 0, value: "finish writing unit tests" },
+          { id: 1, value: "write integ tests" }
+        ]
+      }
+    })
+    let dispatch = jest.spyOn(store, 'dispatch')
+
+    // update using an object (should merge)
+    store.set({
+      username: 'MynockSpit',
+      isAuthenticated: true
+    })
+
+    expect(dispatch).toHaveBeenCalledTimes(2)
+    expect(store.getState()).toEqual({
+      todos: [
+        { id: 0, value: "finish writing unit tests" },
+        { id: 1, value: "write integ tests" }
+      ],
+      username: 'MynockSpit',
+      isAuthenticated: true
     })
   })
 })
