@@ -9,5 +9,8 @@
     ], 
     "@babel/preset-react"
   ],
-  "plugins": ["transform-export-extensions"]
+  "plugins": [
+    "@babel/syntax-export-extensions",
+    "@babel/plugin-transform-runtime"
+  ]
 }

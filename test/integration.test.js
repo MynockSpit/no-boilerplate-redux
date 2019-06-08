@@ -175,6 +175,145 @@ describe('store with preloadedState and functions', () => {
   })
 })
 
+describe('handling undefined (or null) values', () => {
+  test('the entire store can handle it', () => {
+    let store = initializeStore()
+
+    // set a store from nothing
+    store.select('todos').set([
+      { id: 0, value: "finish writing unit tests" },
+      { id: 1, value: "write integ tests" }
+    ])
+
+    expect(store.getState()).toEqual({
+      todos: [
+        { id: 0, value: "finish writing unit tests" },
+        { id: 1, value: "write integ tests" }
+      ],
+      redux_loaded: true
+    })
+
+    // return the store to nothing
+    store.select('todos').set(undefined)
+
+    // undefined is not a valid value for reducers to return, so it gets set to null instead
+    expect(store.getState()).toEqual({
+      todos: null,
+      redux_loaded: true
+    })
+
+    // and back once more to something
+    store.select('todos').set([
+      { id: 0, value: "finish writing unit tests" },
+      { id: 1, value: "write integ tests" }
+    ])
+
+    expect(store.getState()).toEqual({
+      todos: [
+        { id: 0, value: "finish writing unit tests" },
+        { id: 1, value: "write integ tests" }
+      ],
+      redux_loaded: true
+    })
+  })
+
+  test('the entire store can handle it (using fns)', () => {
+    let store = initializeStore()
+    
+    // set the store to something
+    store.select('todos').set(() => ([
+      { id: 0, value: "finish writing unit tests" },
+      { id: 1, value: "write integ tests" }
+    ]))
+
+    expect(store.getState()).toEqual({
+      todos: [
+        { id: 0, value: "finish writing unit tests" },
+        { id: 1, value: "write integ tests" }
+      ],
+      redux_loaded: true
+    })
+
+    // return the store to nothing
+    store.select('todos').set(() => undefined)
+    // undefined is not a valid value for reducers to return, so it gets set to null instead
+    expect(store.getState()).toEqual({
+      todos: null,
+      redux_loaded: true
+    })
+
+    // set the store back to something
+    store.select('todos').set(() => ([
+      { id: 0, value: "finish writing unit tests" },
+      { id: 1, value: "write integ tests" }
+    ]))
+
+    expect(store.getState()).toEqual({
+      todos: [
+        { id: 0, value: "finish writing unit tests" },
+        { id: 1, value: "write integ tests" }
+      ],
+      redux_loaded: true
+    })
+  })
+
+  test('a part of the store can handle it', () => {
+    let store = initializeStore()
+
+    // store goes from nothing to something
+    store.select('one', 'step.too').set({ few: true })
+
+    expect(store.getState()).toEqual({
+      one: { step: { too: { few: true } } },
+      redux_loaded: true
+    })
+
+    // store part goes from something -> nothing
+    store.select('one', 'step.too').set(undefined)
+
+    expect(store.getState()).toEqual({
+      one: { step: { too: undefined } },
+      redux_loaded: true
+    })
+
+    // store goes from nothing to something (again)
+    store.select('one', 'step.too').set({ few: true })
+
+    expect(store.getState()).toEqual({
+      one: { step: { too: { few: true } } },
+      redux_loaded: true
+    })
+  })
+
+  test('a part of the store can handle it (using fns)', () => {
+    let store = initializeStore()
+    
+    // can the store handle being deeply set from nothing?
+    store.select('one', 'step.too').set(() => ({ few: true }))
+
+    expect(store.getState()).toEqual({
+      one: { step: { too: { few: true } } },
+      redux_loaded: true
+    })
+
+    // can the store handle being deeply unset?
+    store.select('one', 'step.too').set(() => undefined)
+
+    expect(store.getState()).toEqual({
+      one: { step: { too: undefined } },
+      redux_loaded: true
+    })
+
+    // can the store handle being deeply reset?
+    store.select('one', 'step.too').set(() => ({ few: true }))
+
+    expect(store.getState()).toEqual({
+      one: { step: { too: { few: true } } },
+      redux_loaded: true
+    })
+  })
+})
+
 describe("store can be modified using `set` pattern", () => {
   test("using a fn and modifying the `store` object performs a merge", () => {
     let store = initializeStore({

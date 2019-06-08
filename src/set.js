@@ -1,8 +1,9 @@
 import _ from 'lodash'
+import { diff } from 'deep-object-diff'
 
 import { fireUpdateAction } from './select';
+import { produceWithFn } from './produce'
 
-import { diff } from 'deep-object-diff'
 
 /**
  * 
@@ -50,7 +51,7 @@ function setFunction(store, fn, actionCustomization) {
   // a (possibly) better solution would be to write a middleware
   // another solution would be to subscribe directly to redux (but that means the handler fires on every action? not sure I want that unless it gets the action)
 
-  let result = fn(_.cloneDeep(store.getState())) // run the function on the current state
+  let result = produceWithFn(store.getState(), fn)
 
   if (!result || typeof result !== 'object') {
     throw new Error('Return value from set function must be an object.')

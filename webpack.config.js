@@ -1,4 +1,5 @@
 const path = require('path');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 const defaults = {
   entry: './src/main.js',
@@ -11,7 +12,7 @@ const defaults = {
   externals: {
     // not wrapping redux b/c you can't use this without redux anyways, so the user necessarily must have it
     redux: "redux",
-    lodash: "lodash"
+    // lodash: "lodash"
   },
   module: {
     rules: [
@@ -23,7 +24,10 @@ const defaults = {
         }
       }
     ]
-  }
+  },
+  plugins: [
+    // new BundleAnalyzerPlugin()
+  ]
 }
 
 module.exports = defaults

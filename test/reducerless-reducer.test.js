@@ -33,7 +33,7 @@ describe('reducerlessReducer', () => {
     const endState = 2
 
     const testState = reducerlessReducer('StateKey', beginState, {  
-      type: 'SET_STORE',
+      type: 'SET_STORE_NOPATH_VALUE_SET',
       payload: {
         value: 2
       },
@@ -48,7 +48,7 @@ describe('reducerlessReducer', () => {
     const endState = { todos: { count: 2 } }
 
     const testState = reducerlessReducer('StateKey', beginState, {
-      type: 'SET_STORE',
+      type: 'SET_STORE_PATH_VALUE_SET',
       payload: {
         path: 'todos.count',
         value: 2
@@ -64,7 +64,7 @@ describe('reducerlessReducer', () => {
     const endState = 2
 
     const testState = reducerlessReducer('StateKey', beginState, {  
-      type: 'SET_STORE',
+      type: 'SET_STORE_NOPATH_FN_SET',
       payload: {
         fn: (state) => state + 1
       },
@@ -79,7 +79,7 @@ describe('reducerlessReducer', () => {
     const endState = { todos: { count: 2 } }
 
     const testState = reducerlessReducer('StateKey', beginState, {
-      type: 'SET_STORE',
+      type: 'SET_STORE_PATH_FN_SET',
       payload: {
         path: 'todos.count',
         fn: (count) => count + 1
@@ -90,12 +90,12 @@ describe('reducerlessReducer', () => {
     expect(testState).toEqual(endState)
   })
 
-  it("interprets undefined state as an object", () => {
+  it("correctly handles undefined state", () => {
     const beginState = undefined
     const endState = { todos: { count: 2 } }
 
     const testState = reducerlessReducer('StateKey', beginState, {
-      type: 'SET_STORE',
+      type: 'SET_STORE_UNDEFINED',
       payload: {
         path: 'todos.count',
         value: 2
@@ -110,7 +110,7 @@ describe('reducerlessReducer', () => {
     const beginState = 2
 
     const testState = reducerlessReducer('StateKey', beginState, {
-      type: 'SET_STORE',
+      type: 'SET_STORE_INVALID_STATE',
       payload: {
         path: 'todos.count',
         value: 2
