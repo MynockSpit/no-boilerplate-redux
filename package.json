@@ -12,7 +12,6 @@
     "@babel/preset-env": "^7.4.5",
     "@babel/preset-react": "^7.0.0",
     "babel-loader": "^8.0.6",
-    "benchmark": "^2.1.4",
     "jest": "^24.8.0",
     "markdown-toc": "^1.2.0",
     "webpack": "^4.33.0",
@@ -33,7 +32,7 @@
     "test": "npm run build && jest",
     "toc": "markdown-toc -i README.md"
   },
-  "version": "1.2.0",
+  "version": "1.2.1",
   "keywords": [
     "redux",
     "reducerless",

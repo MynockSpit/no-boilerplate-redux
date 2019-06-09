@@ -42,7 +42,7 @@ Never write a reducer, an action, or worry about immutability again!
 
 Most of the following you'll recognize from setting up Redux.
 
-1. Install no-boilerplate-redux (and redux if you don't have it)
+1. Install no-boilerplate-redux
 
     ```sh
     npm install --save no-boilerplate-redux

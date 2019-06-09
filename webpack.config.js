@@ -9,10 +9,13 @@ const defaults = {
     library: 'reducerlessRedux',
     libraryTarget: 'umd'
   },
-  externals: {
-    // not wrapping redux b/c you can't use this without redux anyways, so the user necessarily must have it
-    redux: "redux",
-  },
+  externals: [
+    {
+      redux: "redux",
+      immer: "immer"
+    },
+    /^lodash\/.+$/
+  ],
   module: {
     rules: [
       {
