@@ -1,4 +1,5 @@
-import _ from 'lodash'
+import get from 'lodash/get'
+const _ = { get }
 
 import { getFn } from './fn-store.js'
 import { produceWithValue, produceWithFn } from './produce'

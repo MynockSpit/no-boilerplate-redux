@@ -1,5 +1,9 @@
+import cloneDeep from 'lodash/cloneDeep'
+import set from 'lodash/set'
+import merge from 'lodash/merge'
+const _ = { cloneDeep, set, merge }
+
 import { addReducerIfNeeded } from './add-reducer-if-needed'
-import _ from 'lodash'
 
 import { storeFn, getFn } from './fn-store'
 

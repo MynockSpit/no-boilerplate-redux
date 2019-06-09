@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { diff } from 'deep-object-diff'
 
 import { fireUpdateAction } from './select';
@@ -51,20 +50,20 @@ function setFunction(store, fn, actionCustomization) {
   // a (possibly) better solution would be to write a middleware
   // another solution would be to subscribe directly to redux (but that means the handler fires on every action? not sure I want that unless it gets the action)
 
-  let result = produceWithFn(store.getState(), fn)
+  const result = produceWithFn(store.getState(), fn)
 
   if (!result || typeof result !== 'object') {
     throw new Error('Return value from set function must be an object.')
   }
 
-  let object = diff(store.getState(), result) // get the things that changed
+  const changedStoreParts = Object.keys(diff(store.getState(), result)) // get the things that changed
 
   // produce an object of full stores that changed
-  Object.keys(object).reduce((acc, key) => {
+  const changes = changedStoreParts.reduce((acc, key) => {
     acc[key] = result[key]
     return acc
   }, {})
 
   // send them to setObject
-  setObject(store, object, actionCustomization)
+  setObject(store, changes, actionCustomization)
 }

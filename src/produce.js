@@ -1,4 +1,8 @@
-import _ from 'lodash'
+import set from 'lodash/set'
+import get from 'lodash/get'
+import merge from 'lodash/merge'
+const _ = { get, set, merge }
+
 import { createDraft, finishDraft } from 'immer'
 
 export function produceWithValue(state, value, path) {
@@ -27,7 +31,7 @@ export function produceWithFn(state, fn, path) {
   // modify the state
   // if we have a path, apply the modification to just that part, otherwise, apply it to the entire draft
   let updates = (!path) ? fn(draft) : _.set(draft, path, fn(_.get(draft, path)))
-  
+
   // finish the draft, and return the resulting data
   return safeFinishDraft(updates)
 }

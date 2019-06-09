@@ -1,4 +1,5 @@
-import _ from 'lodash'
+import get from 'lodash/get'
+const _ = { get }
 import { reducerlessReducer } from './reducerless-reducer.js'
 
 // creates a reducerRouter
