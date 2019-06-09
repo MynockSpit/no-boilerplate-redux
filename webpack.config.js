@@ -12,7 +12,6 @@ const defaults = {
   externals: {
     // not wrapping redux b/c you can't use this without redux anyways, so the user necessarily must have it
     redux: "redux",
-    // lodash: "lodash"
   },
   module: {
     rules: [

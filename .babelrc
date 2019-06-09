@@ -10,7 +10,6 @@
     "@babel/preset-react"
   ],
   "plugins": [
-    "@babel/syntax-export-extensions",
-    "@babel/plugin-transform-runtime"
+    "@babel/syntax-export-extensions"
   ]
 }

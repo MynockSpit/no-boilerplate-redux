@@ -1,8 +1,6 @@
 {
   "author": "Nathaniel Hutchins (@MynockSpit)",
   "dependencies": {
-    "@babel/runtime": "^7.4.5",
-    "deep-object-diff": "^1.1.0",
     "immer": "^3.1.3",
     "lodash": "^4.17.11",
     "redux": "^4.0.1"
@@ -10,10 +8,9 @@
   "description": "Use redux without actions or reducers.",
   "devDependencies": {
     "@babel/core": "^7.4.5",
-    "@babel/plugin-transform-runtime": "^7.4.4",
+    "@babel/plugin-syntax-export-extensions": "^7.0.0-beta.32",
     "@babel/preset-env": "^7.4.5",
     "@babel/preset-react": "^7.0.0",
-    "@babel/plugin-syntax-export-extensions": "^7.0.0-beta.32",
     "babel-loader": "^8.0.6",
     "benchmark": "^2.1.4",
     "jest": "^24.8.0",
@@ -31,7 +28,8 @@
   "module": "src/main.js",
   "name": "no-boilerplate-redux",
   "scripts": {
-    "build": "npm run toc; webpack --mode=production; gzip -fk9 dist/no-boilerplate-redux.js",
+    "build": "npm run toc; webpack --mode=production; npm run compress",
+    "compress": "gzip -fk9 dist/no-boilerplate-redux.js; ls -al dist/no-boilerplate-redux.js.gz",
     "test": "npm run build && jest",
     "toc": "markdown-toc -i README.md"
   },
