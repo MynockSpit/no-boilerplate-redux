@@ -401,3 +401,41 @@ describe("store can be modified using `set` pattern", () => {
     })
   })
 })
+
+describe("store can be read using `get` pattern", () => {
+  test("using store.select(...).get()", () => {
+    let store = initializeStore({
+      preloadedState: {
+        todos: [
+          { id: 0, value: "finish writing unit tests" },
+          { id: 1, value: "write integ tests" }
+        ]
+      }
+    })
+
+    // update using a function
+    const firstTodoText = store.select('todos', '0.value').get(false)
+    const tenthTodoText = store.select('todos', '10.value').get(false)
+
+    expect(firstTodoText).toEqual("finish writing unit tests")
+    expect(tenthTodoText).toEqual(false)
+  })
+  
+  test("using store.get()", () => {
+    let store = initializeStore({
+      preloadedState: {
+        todos: [
+          { id: 0, value: "finish writing unit tests" },
+          { id: 1, value: "write integ tests" }
+        ]
+      }
+    })
+
+    // update using a function
+    const firstTodoText = store.get('todos.0.value', false)
+    const tenthTodoText = store.get('todos.10.value', false)
+
+    expect(firstTodoText).toEqual("finish writing unit tests")
+    expect(tenthTodoText).toEqual(false)
+  })
+})

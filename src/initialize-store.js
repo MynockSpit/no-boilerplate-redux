@@ -5,6 +5,7 @@ import {
 
 import { select } from './select'
 import { set } from './set'
+import { get } from './get'
 import { addReducerIfNeeded } from './add-reducer-if-needed'
 
 /**
@@ -41,6 +42,7 @@ export const initializeStore = (config = {}) => {
 
   store.select = select.bind(store)
   store.set = set.bind(store)
+  store.get = get.bind(store)
   store.reducers = reducers
   store.reducerCombiner = reducerCombiner
 

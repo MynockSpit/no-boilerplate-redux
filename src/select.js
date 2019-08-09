@@ -1,5 +1,6 @@
 import cloneDeep from 'lodash/cloneDeep'
 import set from 'lodash/set'
+import get from 'lodash/get'
 import merge from 'lodash/merge'
 const _ = { cloneDeep, set, merge }
 
@@ -15,7 +16,8 @@ export function select(stateKey, path) {
     throw new Error('stateKey must be a non-empty string')
 
   return {
-    set: (valOrFn, actionCustomization = {}) => fireUpdateAction({ store, stateKey, path, valOrFn, actionCustomization })
+    set: (valOrFn, actionCustomization = {}) => fireUpdateAction({ store, stateKey, path, valOrFn, actionCustomization }),
+    get: (defaultValue) => get(store.getState()[stateKey], path, defaultValue)
   }
 }
 

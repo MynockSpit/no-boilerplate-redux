@@ -11,7 +11,7 @@ Never write a reducer, an action, or worry about immutability again!
     + [Advanced integration example (with middlewares)](#advanced-integration-example-with-middlewares)
   * [Integration with React Router (using `connected-react-router`)](#integration-with-react-router-using-connected-react-router)
 - [A note on Middleware](#a-note-on-middleware)
-- [API Reference](#api-reference)
+- [API](#api)
   * [`initializeStore({ reducers, reducerCombiner, preloadedState, enhancer })`](#initializestore-reducers-reducercombiner-preloadedstate-enhancer-)
     + [Arguments](#arguments)
     + [Returns](#returns)
@@ -30,11 +30,19 @@ Never write a reducer, an action, or worry about immutability again!
       - [Value Set](#value-set)
       - [Function Set](#function-set)
       - [Customized Action](#customized-action)
-  * [`store.set(valueOrFunction, [actionCustomization])`](#storesetvalueorfunction-actioncustomization)
+  * [`store.select(...).get([defaultValue])`](#storeselectgetdefaultvalue)
     + [Arguments](#arguments-3)
+    + [Returns](#returns-3)
     + [Examples](#examples-2)
+  * [`store.set(valueOrFunction, [actionCustomization])`](#storesetvalueorfunction-actioncustomization)
+    + [Arguments](#arguments-4)
+    + [Examples](#examples-3)
       - [Value Set](#value-set-1)
       - [Function Set](#function-set-1)
+  * [`store.get(path, [defaultValue])`](#storegetpath-defaultvalue)
+    + [Arguments](#arguments-5)
+    + [Returns](#returns-4)
+    + [Examples](#examples-4)
 
 <!-- tocstop -->
 
@@ -179,7 +187,7 @@ no-boilerplate-redux sets the `nbpr` property on the `meta` object of your actio
 }
 ```
 
-## API Reference
+## API
 
 ### `initializeStore({ reducers, reducerCombiner, preloadedState, enhancer })`
 
@@ -282,6 +290,7 @@ export const store = initializeStore({
 ```
 
 ---
+
 ### `store.select(storePart, [path])`
 
 Selects the state you're going to use and returns an object with modification methods. 
@@ -291,7 +300,7 @@ Selects the state you're going to use and returns an object with modification me
 `path (string OR Array)`: The path to specific data (uses [`lodash`](https://github.com/lodash/lodash)-style paths)
 
 #### Returns
-`(Object)`: an object with the `.set` method (see below)
+`(Object)`: an object with the `.set` and `.get` methods (see below)
 
 ---
 
@@ -396,6 +405,33 @@ store
 
 ---
 
+### `store.select(...).get([defaultValue])`
+
+#### Arguments
+
+Gets the value at the selected state's path. Returns the default value (if provided) or undefined if the value does not exist. Equivalent to _.get(store.getState()[stateKey], path, defaultValue).
+
+`defaultValue (*)`: If the property doesn't exist on the store, return this default value. 
+
+#### Returns
+
+`(*)`: The value on the store or the defaultValue specified.
+
+#### Examples
+
+```js
+// developers: {
+//   "1": { name: "Nathaniel", title: "Web Developer" }
+//   "2": { name: "Eddie", title: "Web Developer" }
+// }
+
+// use lodash-style set to deeply set data
+store.select('developers', '1.name').get() // --> "Nathaniel"
+store.select('developers', '10.name').get(false) // --> false
+```
+
+---
+
 ### `store.set(valueOrFunction, [actionCustomization])`
 
 Sets the entire store to the value specified (or returned).
@@ -486,4 +522,30 @@ store.set(store => {
 //   todos: null,
 //   username: "MynockSpit"
 // }
+```
+
+### `store.get(path, [defaultValue])`
+
+#### Arguments
+
+[Lodash-style get](https://lodash.com/docs/4.17.10#get) from the store. Equivalent to _.get(store.getState(), path, defaultValue).
+
+`path (string OR Array)`: The path of the property to get. Can be defined as a dot-separated string or an array of keys. (e.g. `path.to.value` or ['path', 'to', 'value'])
+`defaultValue (*)`: If the property doesn't exist on the store, return this default value. 
+
+#### Returns
+
+`*`: The value on the store or the defaultValue specified.
+
+#### Examples
+
+```js
+// developers: {
+//   "1": { name: "Nathaniel", title: "Web Developer" }
+//   "2": { name: "Eddie", title: "Web Developer" }
+// }
+
+// use lodash-style set to deeply set data
+store.get('developers.1.name') // --> "Nathaniel"
+store.get('developers.10.name', false) // --> false
 ```
