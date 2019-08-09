@@ -1,22 +1,22 @@
 {
   "author": "Nathaniel Hutchins (@MynockSpit)",
   "dependencies": {
-    "immer": "^3.1.3",
-    "lodash": "^4.17.11",
-    "redux": "^4.0.1"
+    "immer": "^3.2.0",
+    "lodash": "^4.17.15",
+    "redux": "^4.0.4"
   },
   "description": "Use redux without actions or reducers.",
   "devDependencies": {
-    "@babel/core": "^7.4.5",
+    "@babel/core": "^7.5.5",
     "@babel/plugin-syntax-export-extensions": "^7.0.0-beta.32",
-    "@babel/preset-env": "^7.4.5",
+    "@babel/preset-env": "^7.5.5",
     "@babel/preset-react": "^7.0.0",
     "babel-loader": "^8.0.6",
     "jest": "^24.8.0",
     "markdown-toc": "^1.2.0",
-    "webpack": "^4.33.0",
-    "webpack-bundle-analyzer": "^3.3.2",
-    "webpack-cli": "^3.3.3"
+    "webpack": "^4.39.1",
+    "webpack-bundle-analyzer": "^3.4.1",
+    "webpack-cli": "^3.3.6"
   },
   "files": [
     "dist",
@@ -27,7 +27,8 @@
   "module": "src/main.js",
   "name": "no-boilerplate-redux",
   "scripts": {
-    "build": "npm run toc; webpack --mode=production; npm run compress",
+    "build": "npm run toc; webpack --mode=production",
+    "build-gz": "npm run build; npm run compress",
     "compress": "gzip -fk9 dist/no-boilerplate-redux.js; ls -al dist/no-boilerplate-redux.js.gz",
     "test": "npm run build && jest",
     "toc": "markdown-toc -i README.md"
