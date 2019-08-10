@@ -1,7 +1,7 @@
-import set from 'lodash/set'
-import get from 'lodash/get'
-import merge from 'lodash/merge'
-const _ = { get, set, merge }
+import _set from 'lodash/set'
+import _get from 'lodash/get'
+import _merge from 'lodash/merge'
+const _ = { get: _get, set: _set, merge: _merge }
 
 import { createDraft, finishDraft } from 'immer'
 

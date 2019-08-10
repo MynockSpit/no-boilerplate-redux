@@ -1,5 +1,5 @@
-import isEqual from 'lodash/isEqual'
-const _ = { isEqual }
+import _isEqual from 'lodash/isEqual'
+const _ = { isEqual: _isEqual }
 
 import { fireUpdateAction } from './select';
 import { produceWithFn } from './produce'
@@ -9,7 +9,7 @@ import { produceWithFn } from './produce'
  * A setState-style interface to a Redux store.
  * 
  * @param {Object|Function} objectOrFn   An object representing changes you want to make to the store, or a function that produces the changes you want to make to the store. In the same style as React's setState.
- * @param {Object} actionCustomization   Any properties to add to the actions to be fired to make these changes.
+ * @param {Object} [actionCustomization]   Any properties to add to the actions to be fired to make these changes.
  */
 export function set(objectOrFn, actionCustomization) {
   let store = this

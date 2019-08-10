@@ -1,8 +1,8 @@
-import cloneDeep from 'lodash/cloneDeep'
-import set from 'lodash/set'
-import get from 'lodash/get'
-import merge from 'lodash/merge'
-const _ = { cloneDeep, set, merge }
+import _cloneDeep from 'lodash/cloneDeep'
+import _set from 'lodash/set'
+import _get from 'lodash/get'
+import _merge from 'lodash/merge'
+const _ = { cloneDeep: _cloneDeep, set: _set, merge: _merge, get: _get }
 
 import { addReducerIfNeeded } from './add-reducer-if-needed'
 
