@@ -39,7 +39,7 @@ Never write a reducer, an action, or worry about immutability again!
     + [Examples](#examples-3)
       - [Value Set](#value-set-1)
       - [Function Set](#function-set-1)
-  * [`store.get(path, [defaultValue])`](#storegetpath-defaultvalue)
+  * [`store.get()`](#storeget)
     + [Arguments](#arguments-5)
     + [Returns](#returns-4)
     + [Examples](#examples-4)
@@ -524,18 +524,15 @@ store.set(store => {
 // }
 ```
 
-### `store.get(path, [defaultValue])`
+### `store.get()`
 
 #### Arguments
 
-[Lodash-style get](https://lodash.com/docs/4.17.10#get) from the store. Equivalent to _.get(store.getState(), path, defaultValue).
-
-`path (string OR Array)`: The path of the property to get. Can be defined as a dot-separated string or an array of keys. (e.g. `path.to.value` or ['path', 'to', 'value'])
-`defaultValue (*)`: If the property doesn't exist on the store, return this default value. 
+Alias to store.getState(). Throws if passed any arguments.
 
 #### Returns
 
-`*`: The value on the store or the defaultValue specified.
+`Object`: An object representing the current value of the store.
 
 #### Examples
 
@@ -545,7 +542,10 @@ store.set(store => {
 //   "2": { name: "Eddie", title: "Web Developer" }
 // }
 
-// use lodash-style set to deeply set data
-store.get('developers.1.name') // --> "Nathaniel"
-store.get('developers.10.name', false) // --> false
+store.get() 
+
+// { developers: {
+//   "1": { name: "Nathaniel", title: "Web Developer" }
+//   "2": { name: "Eddie", title: "Web Developer" }
+// } }
 ```

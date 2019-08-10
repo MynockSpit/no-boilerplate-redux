@@ -1,14 +1,7 @@
-import _get from 'lodash/get'
-const _ = { get: _get }
+export function get() {
+  if (arguments.length > 0)
+    throw new Error(`store.get() expects no arguments, but received ${arguments.length}: ${arguments}`)
 
-/**
- * 
- * A lodash-style getter for stores.
- * 
- * @param {String|Array} path   The path of the property to get. Can be defined as a dot-separated string or an array of keys. (e.g. `path.to.value` or ['path', 'to', 'value'])
- * @param {*} [defaultValue=undefined]   If the property doesn't exist, the default value to return. 
- */
-export function get(path, defaultValue) {
   let store = this
-  return _.get(store.getState(), path, defaultValue)
+  return store.getState()
 }

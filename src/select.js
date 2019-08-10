@@ -16,8 +16,26 @@ export function select(stateKey, path) {
     throw new Error('stateKey must be a non-empty string')
 
   return {
-    set: (valOrFn, actionCustomization = {}) => fireUpdateAction({ store, stateKey, path, valOrFn, actionCustomization }),
-    get: (defaultValue) => get(store.getState()[stateKey], path, defaultValue)
+    set(valOrFn, actionCustomization = {}) { 
+      return fireUpdateAction({ store, stateKey, path, valOrFn, actionCustomization })
+    },
+    get(defaultValue) {
+      
+      let root = store.getState()[stateKey]
+
+      // no path, so just grab the root
+      if (path === undefined) {
+
+        // no root, so return the default value
+        if (root === undefined) {
+          return defaultValue
+        }
+
+        return root
+      }
+
+      return _.get(root, path, defaultValue)
+    }
   }
 }
 
@@ -37,6 +55,7 @@ export function fireUpdateAction({ store, stateKey, valOrFn, path, actionCustomi
   let value = valOrFn
   let fn = undefined
 
+  // if valOrFn is a function, swap the variables
   if (typeof valOrFn === "function") {
     value = undefined
     fn = storeFn(valOrFn)
