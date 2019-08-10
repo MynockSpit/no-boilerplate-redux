@@ -1,39 +1,19 @@
 // cache action functions
-export const functions = {}
-
-export function noOpStateFn(state) {
-  return state
-}
+export const cache = {}
 
 export function storeFn(fn) {
-  if (typeof fn !== 'function') {
-    console.warn('WARNING: Ignoring an attempt to cache a non-function.')
-    fn = noOpStateFn
-  }
-
-  let fnBody = `// fn: ${+new Date()}-${generateRandomNumber(8)}\n` + fn.toString()
-
-  functions[fnBody] = fn
-
+  // a simple way of getting a random 8-digit number
+  let eightDigitNumber = ('' + Math.random()).replace('0.', '').slice(0, 8)
+  let fnBody = `// fn: ${+new Date()}-${eightDigitNumber}\n` + fn
+  cache[fnBody] = fn
   return fnBody
-}
-
-export function generateRandomNumber (length) {
-  return parseInt(
-    new Array(length)
-      .fill('')
-      .map(() => Math.floor(Math.random() * 10))
-      .join('')
-    )
 }
 
 // get the function
 export function getFn(fnOrHash) {
-  if (typeof fnOrHash === 'function') {
-    return fnOrHash
-  } else if (typeof fnOrHash === 'string') {
-    return functions[fnOrHash]
-  } else {
-    return noOpStateFn
-  }
+  let fn = cache[fnOrHash]
+
+  // get getting that value out resulted in a function, use it
+  if (typeof fn === 'function')
+    return fn
 }
