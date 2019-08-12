@@ -20,7 +20,7 @@ Never write a reducer, an action, or worry about immutability again!
       - [Store with vanilla reducers](#store-with-vanilla-reducers)
       - [Store with vanilla reducers and base state](#store-with-vanilla-reducers-and-base-state)
       - [Store with vanilla reducers and react-router](#store-with-vanilla-reducers-and-react-router)
-  * [`store.select(storePart, [path])`](#storeselectstorepart-path)
+  * [`store.select(stateKey, [path])`](#storeselectstatekey-path)
     + [Arguments](#arguments-1)
     + [Returns](#returns-1)
   * [`store.select(...).set(valueOrFunction, [actionCustomization])`](#storeselectsetvalueorfunction-actioncustomization)
@@ -291,12 +291,12 @@ export const store = initializeStore({
 
 ---
 
-### `store.select(storePart, [path])`
+### `store.select(stateKey, [path])`
 
 Selects the state you're going to use and returns an object with modification methods. 
 
 #### Arguments
-`storePart (string)`: The key of the state object you want to interact with  
+`stateKey (string)`: The key of the state object you want to interact with  
 `path (string OR Array)`: The path to specific data (uses [`lodash`](https://github.com/lodash/lodash)-style paths)
 
 #### Returns
@@ -409,7 +409,7 @@ store
 
 #### Arguments
 
-Gets the value at the selected state's path. Returns the default value (if provided) or undefined if the value does not exist. Equivalent to _.get(store.getState()[stateKey], path, defaultValue).
+Gets the value at the selected state's path. Returns the default value (if provided) or undefined if the value does not exist. Functionally equivalent to `_.get(store.getState(), fullPath, defaultValue)` where fullPath is the joined `path` and `stateKey` from the `.select`).
 
 `defaultValue (*)`: If the property doesn't exist on the store, return this default value. 
 

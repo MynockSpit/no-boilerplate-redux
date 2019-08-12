@@ -20,21 +20,12 @@ export function select(stateKey, path) {
       return fireUpdateAction({ store, stateKey, path, valOrFn, actionCustomization })
     },
     get(defaultValue) {
-      
-      let root = store.getState()[stateKey]
-
       // no path, so just grab the root
-      if (path === undefined) {
+      if (path === undefined)
+        return _.get(store.getState(), stateKey, defaultValue)
 
-        // no root, so return the default value
-        if (root === undefined) {
-          return defaultValue
-        }
-
-        return root
-      }
-
-      return _.get(root, path, defaultValue)
+      // joining stateKey and path into a single path is too much effort, so we'll just _.get twice
+      return _.get(store.getState()[stateKey], path, defaultValue)
     }
   }
 }

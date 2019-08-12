@@ -56,10 +56,10 @@ function setFunction(store, fn, actionCustomization) {
     throw new Error('Return value from set function must be an object.')
   }
 
-  const changedStoreParts = diff(store.getState(), result) // get the things that changed
+  const changedStateKeys = diff(store.getState(), result) // get the things that changed
 
   // produce an object of full stores that changed
-  const changes = changedStoreParts.reduce((acc, key) => {
+  const changes = changedStateKeys.reduce((acc, key) => {
     acc[key] = result[key]
     return acc
   }, {})
