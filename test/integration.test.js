@@ -9,18 +9,16 @@ describe('basic store test', () => {
     store = initializeStore()
 
     expect(store.getState()).toEqual({
-      redux_loaded: true
     })
   })
 
   test("can overwrite entire store", () => {
-    store.select('todos').set([{
+    store.set('todos', [{
       id: 0,
       value: "write unit tests"
     }])
 
     expect(store.getState()).toEqual({
-      redux_loaded: true,
       todos: [{
         id: 0,
         value: "write unit tests"
@@ -29,13 +27,12 @@ describe('basic store test', () => {
   })
 
   test("can add new property via path", () => {
-    store.select('todos', '[1]').set({
+    store.set('todos[1]', {
       id: 1,
       value: "write integ tests"
     })
 
     expect(store.getState()).toEqual({
-      redux_loaded: true,
       todos: [
         { id: 0, value: "write unit tests" },
         { id: 1, value: "write integ tests" }
@@ -44,10 +41,9 @@ describe('basic store test', () => {
   })
 
   test("can modify property via path", () => {
-    store.select('todos', '[0].value').set('finish writing unit tests')
+    store.set('todos.[0].value', 'finish writing unit tests')
 
     expect(store.getState()).toEqual({
-      redux_loaded: true,
       todos: [
         { id: 0, value: "finish writing unit tests" },
         { id: 1, value: "write integ tests" }
@@ -88,7 +84,7 @@ describe('store with preloadedState and functions', () => {
   })
 
   test('can update a store part using a function w/o a path', () => {
-    store.select('songPlaysByArtist').set(songPlaysByArtist => {
+    store.set('songPlaysByArtist', songPlaysByArtist => {
       songPlaysByArtist['Talking Heads']['Burning Down The House']++
       return songPlaysByArtist
     })
@@ -106,8 +102,10 @@ describe('store with preloadedState and functions', () => {
   })
 
   test('can update a store part using a function w/ a path', () => {
-    store.select('songPlaysByArtist', '["Talking Heads"]["Psycho Killer"]')
-      .set((psychoKillerPlays = 0) => (psychoKillerPlays) + 1)
+    store.set(
+      'songPlaysByArtist.["Talking Heads"]["Psycho Killer"]',
+      (psychoKillerPlays = 0) => (psychoKillerPlays) + 1
+    )
 
     expect(store.getState()).toEqual({
       songPlaysByArtist: {
@@ -123,12 +121,14 @@ describe('store with preloadedState and functions', () => {
   })
 
   test('can replace a path on a store part with a value', () => {
-    store.select('artists', '["Talking Heads"].members').set([
-      'David Byrne',
-      'Chris Frantz',
-      'Tina Weymouth',
-      'Jerry Harrison'
-    ])
+    store.set(
+      'artists.["Talking Heads"].members',
+      [
+        'David Byrne',
+        'Chris Frantz',
+        'Tina Weymouth',
+        'Jerry Harrison'
+      ])
 
     expect(store.getState()).toEqual({
       songPlaysByArtist: {
@@ -153,7 +153,7 @@ describe('store with preloadedState and functions', () => {
   })
 
   test('can replace an entire store part with a value', () => {
-    store.select('songPlaysByArtist').set({
+    store.set('songPlaysByArtist', {
       'Talking Heads': {}
     })
 
@@ -180,7 +180,7 @@ describe('user can set parts of the store to undefined (or null) values', () => 
     let store = initializeStore()
 
     // set a store from nothing
-    store.select('todos').set([
+    store.set('todos', [
       { id: 0, value: "finish writing unit tests" },
       { id: 1, value: "write integ tests" }
     ])
@@ -190,20 +190,18 @@ describe('user can set parts of the store to undefined (or null) values', () => 
         { id: 0, value: "finish writing unit tests" },
         { id: 1, value: "write integ tests" }
       ],
-      redux_loaded: true
     })
 
     // return the store to nothing
-    store.select('todos').set(undefined)
+    store.set('todos', undefined)
 
     // undefined is not a valid value for reducers to return, so it gets set to null instead
     expect(store.getState()).toEqual({
-      todos: null,
-      redux_loaded: true
+      todos: undefined,
     })
 
     // and back once more to something
-    store.select('todos').set([
+    store.set('todos', [
       { id: 0, value: "finish writing unit tests" },
       { id: 1, value: "write integ tests" }
     ])
@@ -213,7 +211,6 @@ describe('user can set parts of the store to undefined (or null) values', () => 
         { id: 0, value: "finish writing unit tests" },
         { id: 1, value: "write integ tests" }
       ],
-      redux_loaded: true
     })
   })
 
@@ -221,7 +218,7 @@ describe('user can set parts of the store to undefined (or null) values', () => 
     let store = initializeStore()
 
     // set the store to something
-    store.select('todos').set(() => ([
+    store.set('todos', () => ([
       { id: 0, value: "finish writing unit tests" },
       { id: 1, value: "write integ tests" }
     ]))
@@ -231,19 +228,17 @@ describe('user can set parts of the store to undefined (or null) values', () => 
         { id: 0, value: "finish writing unit tests" },
         { id: 1, value: "write integ tests" }
       ],
-      redux_loaded: true
     })
 
     // return the store to nothing
-    store.select('todos').set(() => undefined)
+    store.set('todos', () => undefined)
     // undefined is not a valid value for reducers to return, so it gets set to null instead
     expect(store.getState()).toEqual({
-      todos: null,
-      redux_loaded: true
+      todos: undefined,
     })
 
     // set the store back to something
-    store.select('todos').set(() => ([
+    store.set('todos', () => ([
       { id: 0, value: "finish writing unit tests" },
       { id: 1, value: "write integ tests" }
     ]))
@@ -253,7 +248,6 @@ describe('user can set parts of the store to undefined (or null) values', () => 
         { id: 0, value: "finish writing unit tests" },
         { id: 1, value: "write integ tests" }
       ],
-      redux_loaded: true
     })
   })
 
@@ -261,27 +255,24 @@ describe('user can set parts of the store to undefined (or null) values', () => 
     let store = initializeStore()
 
     // store goes from nothing to something
-    store.select('one', 'step.too').set({ few: true })
+    store.set('one.step.too', { few: true })
 
     expect(store.getState()).toEqual({
       one: { step: { too: { few: true } } },
-      redux_loaded: true
     })
 
     // store part goes from something -> nothing
-    store.select('one', 'step.too').set(undefined)
+    store.set('one.step.too', undefined)
 
     expect(store.getState()).toEqual({
       one: { step: { too: undefined } },
-      redux_loaded: true
     })
 
     // store goes from nothing to something (again)
-    store.select('one', 'step.too').set({ few: true })
+    store.set('one.step.too', { few: true })
 
     expect(store.getState()).toEqual({
       one: { step: { too: { few: true } } },
-      redux_loaded: true
     })
   })
 
@@ -289,40 +280,34 @@ describe('user can set parts of the store to undefined (or null) values', () => 
     let store = initializeStore()
 
     // can the store handle being deeply set from nothing?
-    store.select('one', 'step.too').set(() => ({ few: true }))
+    store.set('one.step.too', () => ({ few: true }))
 
     expect(store.getState()).toEqual({
       one: { step: { too: { few: true } } },
-      redux_loaded: true
     })
 
     // can the store handle being deeply unset?
-    store.select('one', 'step.too').set(() => undefined)
+    store.set('one.step.too', () => undefined)
 
     expect(store.getState()).toEqual({
       one: { step: { too: undefined } },
-      redux_loaded: true
     })
 
     // can the store handle being deeply reset?
-    store.select('one', 'step.too').set(() => ({ few: true }))
+    store.set('one.step.too', () => ({ few: true }))
 
     expect(store.getState()).toEqual({
       one: { step: { too: { few: true } } },
-      redux_loaded: true
     })
   })
 })
 
 describe('user can customize the action being fired', () => {
-  let store = initializeStore()
-  let dispatch = jest.spyOn(store, 'dispatch')
-
   test('user can customize the action with a string', () => {
-    store.select('todos').set((todos) => {
-      if (todos === null)
-        todos = []
-
+    let store = initializeStore()
+    let dispatch = jest.spyOn(store, 'dispatch')
+    
+    store.action('todos', (todos = []) => {
       todos.push({
         id: todos.length,
         value: "make sure string action customization works"
@@ -338,7 +323,7 @@ describe('user can customize the action being fired', () => {
       type: 'SET_TODOS_WITH_PUSH',
       payload:
       {
-        path: undefined,
+        path: expect.any(Array),
         value: undefined,
         fn: expect.any(String)
       },
@@ -346,7 +331,6 @@ describe('user can customize the action being fired', () => {
     })
 
     expect(store.getState()).toEqual({
-      redux_loaded: true,
       todos: [{
         id: 0,
         value: "make sure string action customization works"
@@ -355,26 +339,29 @@ describe('user can customize the action being fired', () => {
   })
 
   test('user can customize the action with an object', () => {
+    let store = initializeStore()
+    let dispatch = jest.spyOn(store, 'dispatch')
 
-    store.select('todos').set((todos) => {
-      if (todos === null)
-        todos = []
+    store.action(store => {
+      let { todos = [] } = store
 
       todos.push({
         id: todos.length,
         value: "make sure object action customization works"
       })
 
-      return todos
+      store.todos = todos
+
+      return store
     }, {
-      type: "PUSH_TODO",
-      payload: {
-        someExtraData: 10
-      },
-      meta: {
-        moreExtraData: 11
-      }
-    })
+        type: "PUSH_TODO",
+        payload: {
+          someExtraData: 10
+        },
+        meta: {
+          moreExtraData: 11
+        }
+      })
 
     let lastCallArguments = dispatch.mock.calls[dispatch.mock.calls.length - 1]
     let firstArgument = lastCallArguments[0]
@@ -387,18 +374,16 @@ describe('user can customize the action being fired', () => {
         value: undefined,
         fn: expect.any(String)
       },
-      meta: { 
+      meta: {
         moreExtraData: 11,
-        nbpr: 'todos' 
+        nbpr: 'store'
       }
     })
 
     expect(store.getState()).toEqual({
-      redux_loaded: true,
       todos: [
-        { id: 0, value: "make sure string action customization works" },
-        { id: 1, value: "make sure object action customization works" }
-    ]
+        { id: 0, value: "make sure object action customization works" }
+      ]
     })
   })
 })
@@ -413,7 +398,6 @@ describe("user can modify the store using `.set()`", () => {
         ]
       }
     })
-    let dispatch = jest.spyOn(store, 'dispatch')
 
     // update using a function
     store.set((state) => {
@@ -423,7 +407,6 @@ describe("user can modify the store using `.set()`", () => {
       return state
     })
 
-    expect(dispatch).toHaveBeenCalledTimes(2)
     expect(store.getState()).toEqual({
       todos: [
         { id: 0, value: "finish writing unit tests" },
@@ -434,7 +417,6 @@ describe("user can modify the store using `.set()`", () => {
     })
   })
 
-  // confirm that using a fn and returning an object replaces the store
   test("using a fn and returning an object replaces the store", () => {
     let store = initializeStore({
       preloadedState: {
@@ -444,7 +426,6 @@ describe("user can modify the store using `.set()`", () => {
         ]
       }
     })
-    let dispatch = jest.spyOn(store, 'dispatch')
 
     // update using a function
     store.set(() => {
@@ -454,9 +435,7 @@ describe("user can modify the store using `.set()`", () => {
       }
     })
 
-    expect(dispatch).toHaveBeenCalledTimes(3)
     expect(store.getState()).toEqual({
-      todos: null,
       username: 'MynockSpit',
       isAuthenticated: true
     })
@@ -471,7 +450,6 @@ describe("user can modify the store using `.set()`", () => {
         ]
       }
     })
-    let dispatch = jest.spyOn(store, 'dispatch')
 
     // update using an object (should merge)
     store.set({
@@ -479,7 +457,6 @@ describe("user can modify the store using `.set()`", () => {
       isAuthenticated: true
     })
 
-    expect(dispatch).toHaveBeenCalledTimes(2)
     expect(store.getState()).toEqual({
       todos: [
         { id: 0, value: "finish writing unit tests" },
@@ -490,26 +467,26 @@ describe("user can modify the store using `.set()`", () => {
     })
   })
 
-  test("throws when user tries to return a non-object from a .set()", () => {
+  test("user can set entire store to a non-object from a .set()", () => {
     let store = initializeStore()
 
-    expect(() => {
-      store.set(() => {
-        return 'MynockSpit'
-      })
-    }).toThrow()
+    store.set(() => {
+      return 'MynockSpit'
+    })
+
+    expect(store.getState()).toEqual('MynockSpit')
   })
 
   test("throws when user tries to .set() to a value that isn't an object or function", () => {
     let store = initializeStore()
 
-    expect(() => {
-      store.set('MynockSpit')
-    }).toThrow()
+    store.set('MynockSpit')
+
+    expect(store.getState()).toEqual('MynockSpit')
   })
 })
 
-test("user can read the store using `.select().get()`", () => {
+test("user can read the store using `.get(path)`", () => {
   let preloadedState = {
     todos: [
       { id: 0, value: "finish writing unit tests" },
@@ -519,16 +496,16 @@ test("user can read the store using `.select().get()`", () => {
   let store = initializeStore({ preloadedState })
 
   // update using a function
-  const getWithoutPath = store.select('todos').get()
+  const getWithoutPath = store.get('todos')
   expect(getWithoutPath).toEqual(preloadedState.todos)
 
-  const firstTodoText = store.select('todos', '0.value').get(false)
+  const firstTodoText = store.get('todos.0.value', false)
   expect(firstTodoText).toEqual("finish writing unit tests")
 
-  const tenthTodoText = store.select('todos', '10.value').get(false)
+  const tenthTodoText = store.get('todos.10.value', false)
   expect(tenthTodoText).toEqual(false)
 
-  const noStoreValue = store.select('nonExistant').get()
+  const noStoreValue = store.get('nonExistant')
   expect(noStoreValue).toEqual(undefined)
 })
 
@@ -544,7 +521,4 @@ test("user can read the store using `.get()`", () => {
   // update using a function
   const getWithoutPath = store.get()
   expect(getWithoutPath).toEqual(preloadedState)
-
-  // any argument causes store.get to throw
-  expect(() => { store.get('path.to.whatever') }).toThrow()
 })

@@ -3,10 +3,14 @@ import {
   createStore as createReduxStore
 } from 'redux'
 
-import { select } from './select'
 import { set } from './set'
 import { get } from './get'
-import { addReducerIfNeeded } from './add-reducer-if-needed'
+import { action } from './action'
+import { defaultReducer } from './default-reducer';
+
+import lodash_get from 'lodash/get'
+
+function noopReducer(state = null) { return state }
 
 /**
  * 
@@ -21,30 +25,49 @@ import { addReducerIfNeeded } from './add-reducer-if-needed'
  */
 export const initializeStore = (config = {}) => {
   const {
-    reducers = {}, 
-    reducerCombiner = combineReducers, 
-    preloadedState = {}, 
-    enhancer 
+    reducers = {},
+    reducerCombiner = combineReducers,
+    preloadedState = {},
+    enhancer
   } = config
 
-  // build reducerless reducers for each piece of the preloadedState that isn't matched already
-  Object.keys(preloadedState).forEach((stateKey) => addReducerIfNeeded(stateKey, reducers))
+  let rootReducer
 
-  // always need at least one reducer to start; redux_loaded is a dummy reducer that doesn't do anything except let us build an initial store; we only add it if we didn't get a baseReducer or an initialState from the user
-  if (!Object.keys(reducers).length)
-    reducers.redux_loaded = () => true
+  if (reducers && typeof reducers === 'object' && Object.keys(reducers).length === 0) {
+    rootReducer = noopReducer
+  } 
+  
+  else {
+    let patchedReducers = Object.assign(
+      {},
+      Object.keys(preloadedState).reduce((obj, key) => {
+        obj[key] = noopReducer
+        return obj
+      }, {}),
+      reducers
+    )
+    rootReducer = reducerCombiner(patchedReducers)
+  }
 
-  let store = createReduxStore(
-    reducerCombiner(reducers),
-    preloadedState,
-    enhancer
-  );
+  let passThroughArguments = [preloadedState, enhancer]
 
-  store.select = select.bind(store)
+
+  function reducerRouter(state, action) {
+    let nbprMeta = lodash_get(action, 'meta.nbpr', Symbol.for('meta.nbpr-not-set'))
+
+    // if meta.nbpr is not set, use the passed in rootReducer
+    if (nbprMeta === Symbol.for('meta.nbpr-not-set'))
+      return rootReducer(state, action)
+
+    // else, NO BOILERPLATE!!!
+    return defaultReducer(state, action)
+  }
+
+  let store = createReduxStore(reducerRouter, ...passThroughArguments)
+
   store.set = set.bind(store)
   store.get = get.bind(store)
-  store.reducers = reducers
-  store.reducerCombiner = reducerCombiner
+  store.action = action.bind(store)
 
   return store
 }
