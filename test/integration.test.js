@@ -320,14 +320,13 @@ describe('user can customize the action being fired', () => {
     let firstArgument = lastCallArguments[0]
 
     expect(firstArgument).toEqual({
-      type: 'SET_TODOS_WITH_PUSH',
+      type: 'UPDATE_TODOS_WITH_PUSH',
       payload:
       {
-        path: expect.any(Array),
-        value: undefined,
-        fn: expect.any(String)
+        patch: expect.any(Array),
+        replace: undefined,
       },
-      meta: { nbpr: 'todos' }
+      meta: { nbpr: true }
     })
 
     expect(store.getState()).toEqual({
@@ -370,13 +369,12 @@ describe('user can customize the action being fired', () => {
       type: 'PUSH_TODO',
       payload: {
         someExtraData: 10,
-        path: undefined,
-        value: undefined,
-        fn: expect.any(String)
+        replace: undefined,
+        patch: expect.any(Array)
       },
       meta: {
         moreExtraData: 11,
-        nbpr: 'store'
+        nbpr: true
       }
     })
 
@@ -441,7 +439,7 @@ describe("user can modify the store using `.set()`", () => {
     })
   })
 
-  test("using an object performs shallow merge", () => {
+  test("using an object without a path performs full store replace", () => {
     let store = initializeStore({
       preloadedState: {
         todos: [
@@ -458,10 +456,6 @@ describe("user can modify the store using `.set()`", () => {
     })
 
     expect(store.getState()).toEqual({
-      todos: [
-        { id: 0, value: "finish writing unit tests" },
-        { id: 1, value: "write integ tests" }
-      ],
       username: 'MynockSpit',
       isAuthenticated: true
     })

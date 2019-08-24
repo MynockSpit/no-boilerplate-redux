@@ -1,64 +1,62 @@
-import lodash_cloneDeep from 'lodash/cloneDeep'
-import lodash_set from 'lodash/set'
 import lodash_merge from 'lodash/merge'
 import lodash_stringToPath from 'lodash/_stringToPath'
 
-import { storeFn, getFn } from './fn-store'
+import { getPatches } from './produce'
 
 /**
  * 
  * @param {Object} firingParameters   An object that contains the data needed to fire an update action
  * @param {Object} firingParameters.store   The redux store. 
- * @param {String} firingParameters.stateKey   The state part we're updating.
  * @param {*|Function} firingParameters.valOrFn   If a function, will be run during the reducer phase. If a value, will be set during the reducer phase.
  * @param {String} [firingParameters.path]   A sub-path to pass to the valueFn or be set to during the reducer phase
  * @param {Object} [firingParameters.actionCustomization]   A set of params from the user that can add/remove params in the action.
  */
 export function fireUpdateAction({ store, valOrFn, path, actionCustomization }) {
 
-  let value = valOrFn
-  let fn = undefined
-
-  // if valOrFn is a function, swap the variables
-  if (typeof valOrFn === "function") {
-    value = undefined
-    fn = storeFn(valOrFn)
-  }
-
-  let pathAsArray
-
-  // turn path into an array
-  if (typeof path === 'string' || Array.isArray(path)) {
-    pathAsArray = lodash_stringToPath(path)
-    
-    if (!pathAsArray.length) {
-      pathAsArray = undefined
-    }
-  }
-
-  let stateKey = pathAsArray ? pathAsArray[0] : 'store'
-
-  // customize the action
-  let type = `SET_${stateKey.toUpperCase()}`
-
-  let customProperties = actionCustomization
-
-  if (typeof actionCustomization === 'string') {
-    type += `_${actionCustomization.toUpperCase()}`
-    customProperties = {}
-  }
-
   // properties that are defaulted that can be overridden
-  const canOverride = { type }
+  const canOverride = { type: 'SET_STORE' }
 
   // properties that are defaulted that can't be overridden
   const cantOverride = {
     payload: {
-      path: pathAsArray,
-      value,
-      fn
+      patch: undefined,
+      replace: undefined
     },
-    meta: { nbpr: stateKey || true }
+    meta: { nbpr: true }
+  }
+
+  // turn path into an array
+  let pathAsArray
+
+  if (typeof path === 'string' || Array.isArray(path)) {
+    pathAsArray = lodash_stringToPath(path)
+    
+    if (!pathAsArray.length) pathAsArray = undefined
+  }
+
+  // pre-run the function 
+    let { replace, patch } = getPatches(store.getState(), valOrFn, path)
+
+    if (replace) {
+      canOverride.type = 'REPLACE'
+      cantOverride.payload.replace = replace
+    }
+
+    else {
+      canOverride.type = 'UPDATE'
+      cantOverride.payload.patch = patch
+    }
+
+  // customize the action
+  // customize the action type, first
+  canOverride.type += `_${(pathAsArray ? pathAsArray[0] : 'store').toUpperCase()}`
+
+  // handle the actionCustomization property
+  let customProperties = actionCustomization
+
+  if (typeof actionCustomization === 'string') {
+    canOverride.type += `_${actionCustomization.toUpperCase()}`
+    customProperties = {}
   }
 
   const action = lodash_merge(
@@ -66,6 +64,8 @@ export function fireUpdateAction({ store, valOrFn, path, actionCustomization }) 
     customProperties,
     cantOverride
   )
+
+  console.log('action', action)
 
   store.dispatch(action)
 
