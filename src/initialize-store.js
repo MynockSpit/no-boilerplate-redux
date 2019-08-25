@@ -23,34 +23,26 @@ function noopReducer(state = null) { return state }
  * @param {Object} config.preloadedState={} - An object of default state; does not require `reducers` param to function
  * @param {Function} config.enhancer - A function to enhance your store with thirder-party capabilities. (see  https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md)
  */
-export const initializeStore = (config = {}) => {
-  const {
-    reducers = {},
-    reducerCombiner = combineReducers,
-    preloadedState = {},
-    enhancer
-  } = config
+export const initializeStore = ({ reducer = noopReducer, preloadedState = {}, enhancer } = {}) => {
+  let rootReducer = reducer
+  let addReducer
+  let reducerObject
 
-  let rootReducer
+  if (reducer && typeof reducer === 'object') {
+    reducerObject = reducer
+    rootReducer = combineReducers(reducerObject)
 
-  if (reducers && typeof reducers === 'object' && Object.keys(reducers).length === 0) {
-    rootReducer = noopReducer
-  } 
-  
-  else {
-    let patchedReducers = Object.assign(
-      {},
-      Object.keys(preloadedState).reduce((obj, key) => {
-        obj[key] = noopReducer
-        return obj
-      }, {}),
-      reducers
-    )
-    rootReducer = reducerCombiner(patchedReducers)
+    addReducer = (key) => {
+      if (key && !reducerObject[key]) {
+        reducerObject[key] = noopReducer
+        rootReducer = combineReducers(reducerObject)
+      }
+    }
+
+    Object.keys(preloadedState).forEach(addReducer)
   }
 
   let passThroughArguments = [preloadedState, enhancer]
-
 
   function reducerRouter(state, action) {
     let nbprMeta = lodash_get(action, 'meta.nbpr', Symbol.for('meta.nbpr-not-set'))
@@ -68,6 +60,9 @@ export const initializeStore = (config = {}) => {
   store.set = set.bind(store)
   store.get = get.bind(store)
   store.action = action.bind(store)
+
+  if (addReducer)
+    store.addReducer = addReducer
 
   return store
 }

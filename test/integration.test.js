@@ -1,7 +1,24 @@
 import { initializeStore } from '../src/initialize-store'
 
-// test as much of the functionality that users will experience as reasonable
+// a hack to print the name of the tests before the logs from each test.
+// using warn to make them yellow by default. Maybe add color later?
+let realTest = test
+test = (desc, testFn) => {
+  let fn = (...args) => {
+    console.warn('TEST:', desc)
+    let testRun
+    try {
+      testRun = testFn(...args)
+    } catch (e) {
+      console.error(e)
+      throw e
+    }
+    return testRun
+  }
+  return realTest(desc, fn)
+}
 
+// test as much of the functionality that users will experience as reasonable
 describe('basic store test', () => {
   let store
 
@@ -66,7 +83,7 @@ describe('store with preloadedState and functions', () => {
           }
         }
       },
-      reducers: {
+      reducer: {
         artists: (state = {}) => state
       }
     })
@@ -306,7 +323,7 @@ describe('user can customize the action being fired', () => {
   test('user can customize the action with a string', () => {
     let store = initializeStore()
     let dispatch = jest.spyOn(store, 'dispatch')
-    
+
     store.action('todos', (todos = []) => {
       todos.push({
         id: todos.length,
@@ -480,7 +497,167 @@ describe("user can modify the store using `.set()`", () => {
   })
 })
 
-test("user can read the store using `.get(path)`", () => {
+describe("make sure some weird edge-cases work", () => {
+
+  let warn = jest.spyOn(global.console, 'warn')
+  let error = jest.spyOn(global.console, 'error')
+
+  test("undefined and the store", () => {
+    let store = initializeStore({ reducer: () => undefined })
+    expect(store.getState()).toEqual(undefined)
+
+    // if the store is undefined, and you set a path on it, it should convert it to an object
+    store.set('foo.bar.baz', true)
+    expect(store.getState()).toEqual({ foo: { bar: { baz: true } } })
+
+    // make sure when we set undefined, it gets set
+    store.set(undefined)
+    expect(store.getState()).toEqual(undefined)
+  })
+
+  test("null and the store", () => {
+    let store = initializeStore({ reducer: () => null })
+    expect(store.getState()).toEqual(null)
+
+    // if the store is undefined, and you set a path on it, it should convert it to an object
+    store.set('foo.bar.baz', true)
+    expect(store.getState()).toEqual({ foo: { bar: { baz: true } } })
+
+    // make sure when we set undefined, it gets set
+    store.set(null)
+    expect(store.getState()).toEqual(null)
+  })
+
+  test("other primatives and the store", () => {
+    let store = initializeStore({ reducer: () => 1000 })
+    expect(store.getState()).toEqual(1000)
+
+    store.set(23)
+    expect(store.getState()).toEqual(23)
+
+    // Probably warn here too.
+    store.set('', 28)
+    expect(store.getState()).toEqual(28)
+
+    // Not really sure what I want this to be? Warn, probably.
+    store.set(undefined, 28)
+    expect(store.getState()).toEqual(28)
+
+  // expect(() => {
+  //   store.set('foo.bar.baz', 23)
+  // }).toThrow() // do I?
+  })
+})
+
+// there's quite a bit of logic that makes the vanilla reducers (especially ones made with 
+// `combineReducers`) work with nbpr. This test makes sure that that code is still working.
+test("store works with vanilla reducers", () => {
+
+  // make sure we initialize correctly with a reducer, matching preloaded state AND extra preloaded state
+  let store = initializeStore({
+    reducer: {
+      todos(state = [], action) {
+        switch (action.type) {
+          case "ADD_TODO":
+            return [
+              ...state,
+              {
+                text: action.text,
+                completed: false
+              }
+            ]
+          case "TOGGLE_TODO":
+            return state.map((todo, index) => {
+              if (index === action.index) {
+                return Object.assign({}, todo, {
+                  completed: !todo.completed
+                })
+              }
+              return todo
+            })
+          default:
+            return state
+        }
+      }
+    },
+    preloadedState: {
+      todos: [
+        { text: 'go skiing', completed: false }
+      ],
+      tomaybes: [
+        { text: "nope, nevermind" }
+      ]
+    }
+  })
+  expect(store.getState()).toEqual({
+    todos: [
+      { text: 'go skiing', completed: false }
+    ],
+    tomaybes: [
+      { text: "nope, nevermind" }
+    ]
+  })
+
+  // make sure a vanilla reducer doesn't screw anything up
+  store.dispatch({
+    type: "ADD_TODO",
+    text: "learn how to fly a spaceship"
+  })
+
+  expect(store.getState()).toEqual({
+    todos: [
+      { text: 'go skiing', completed: false },
+      { text: 'learn how to fly a spaceship', completed: false },
+    ],
+    tomaybes: [
+      { text: "nope, nevermind" }
+    ]
+  })
+
+  // make sure nbpr doesn't screw anything up (and can add a new path)
+  store.set('todonts', [
+    { text: 'fall off a cliff', goodSoFar: true },
+    { text: 'get lost in another galaxy', goodSoFar: true }
+  ])
+
+  expect(store.getState()).toEqual({
+    todos: [
+      { text: 'go skiing', completed: false },
+      { text: 'learn how to fly a spaceship', completed: false },
+    ],
+    todonts: [
+      { text: 'fall off a cliff', goodSoFar: true },
+      { text: 'get lost in another galaxy', goodSoFar: true }
+    ],
+    tomaybes: [
+      { text: "nope, nevermind" }
+    ]
+  })
+
+  // make sure vanilla doesn't screw up the nbpr stuff we just added
+  store.dispatch({
+    type: "ADD_TODO",
+    text: "go rock climbing"
+  })
+
+  expect(store.getState()).toEqual({
+    todos: [
+      { text: 'go skiing', completed: false },
+      { text: 'learn how to fly a spaceship', completed: false },
+      { text: 'go rock climbing', completed: false },
+    ],
+    todonts: [
+      { text: 'fall off a cliff', goodSoFar: true },
+      { text: 'get lost in another galaxy', goodSoFar: true }
+    ],
+    tomaybes: [
+      { text: "nope, nevermind" }
+    ]
+  })
+
+})
+
+test("user can read the store", () => {
   let preloadedState = {
     todos: [
       { id: 0, value: "finish writing unit tests" },
@@ -489,9 +666,11 @@ test("user can read the store using `.get(path)`", () => {
   }
   let store = initializeStore({ preloadedState })
 
-  // update using a function
-  const getWithoutPath = store.get('todos')
-  expect(getWithoutPath).toEqual(preloadedState.todos)
+  const getWithoutPath = store.get()
+  expect(getWithoutPath).toEqual(preloadedState)
+
+  const getWithTodosPath = store.get('todos')
+  expect(getWithTodosPath).toEqual(preloadedState.todos)
 
   const firstTodoText = store.get('todos.0.value', false)
   expect(firstTodoText).toEqual("finish writing unit tests")
@@ -501,18 +680,4 @@ test("user can read the store using `.get(path)`", () => {
 
   const noStoreValue = store.get('nonExistant')
   expect(noStoreValue).toEqual(undefined)
-})
-
-test("user can read the store using `.get()`", () => {
-  let preloadedState = {
-    todos: [
-      { id: 0, value: "finish writing unit tests" },
-      { id: 1, value: "write integ tests" }
-    ]
-  }
-  let store = initializeStore({ preloadedState })
-
-  // update using a function
-  const getWithoutPath = store.get()
-  expect(getWithoutPath).toEqual(preloadedState)
 })
