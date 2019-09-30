@@ -20,5 +20,7 @@ export function get(path, defaultValue) {
     return lodash_get(store.getState(), path, defaultValue)
   }
 
-  throw new Error(`.get expects zero parameters ( .get() ), one parameter ( .get(path) ), or two parameters ( .get(path, defaultValue), but received ${arguments.length}: ${[].join.call(arguments, ', ')})`)
+  if (process.env.NODE_ENV !== 'production') {
+    throw new Error(`.get expects zero parameters ( .get() ), one parameter ( .get(path) ), or two parameters ( .get(path, defaultValue), but received ${arguments.length}: ${[].join.call(arguments, ', ')})`)
+  }
 }

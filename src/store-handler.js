@@ -12,18 +12,24 @@ import lodash_get from 'lodash/get'
 
 function noopReducer(state = null) { return state }
 
+const stores = {}
+
 /**
  * 
  * A createStore replacement. Does all the same things as createStore 
  * (and accepts very similar arguments), and initializes no boilerplate redux.
  * 
- * @param {Object} config - A config object used to reference, create and recreate the store.
- * @param {Object} config.reducers={} - An object of normal redux reducers to include alongside no-boilerplate-redux
- * @param {Function} config.reducerCombiner=combineReducers - A function that takes in a reducers object (see above) and produces a root reducer
- * @param {Object} config.preloadedState={} - An object of default state; does not require `reducers` param to function
- * @param {Function} config.enhancer - A function to enhance your store with thirder-party capabilities. (see  https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md)
+ * @param {Object} config   A config object used to reference, create and recreate the store.
+ * @param {String} [key='global']   A key used to save and get the store.
+ * @param {Object|Function} [config.reducer={}]   A reducer function or an object of reducers function to include alongside no-boilerplate-redux
+ * @param {Object} [config.preloadedState={}]   An object of default state; does not require `reducer` param to function
+ * @param {Function} [config.enhancer]   A function to enhance your store with third-party capabilities. (see  https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md)
  */
-export const initializeStore = ({ reducer = noopReducer, preloadedState = {}, enhancer } = {}) => {
+export const createStore = ({ key = 'global', reducer = noopReducer, preloadedState = {}, enhancer } = {}) => {
+  if (process.env.NODE_ENV !== 'production' && stores[key]) {
+    console.warn(`Store with key "${key}" already initialized! Overwriting reference to original store with this key.`)
+  }
+
   let rootReducer = reducer
   let addReducer
   let reducerObject
@@ -64,5 +70,17 @@ export const initializeStore = ({ reducer = noopReducer, preloadedState = {}, en
   if (addReducer)
     store.addReducer = addReducer
 
+  stores[key] = store
+
   return store
+}
+
+/**
+ * 
+ * Get the store referenced by the provided key.
+ * 
+ * @param {String} [storeKey='global']  The key of the store. If not provided, use the global store. 
+ */
+export function getStore(storeKey = 'global') {
+  return stores[storeKey]
 }

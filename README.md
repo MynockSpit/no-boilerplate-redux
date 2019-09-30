@@ -12,7 +12,7 @@ Never write a reducer, an action, or worry about immutability again!
   * [Integration with React Router (using `connected-react-router`)](#integration-with-react-router-using-connected-react-router)
 - [A note on Middleware](#a-note-on-middleware)
 - [API](#api)
-  * [`initializeStore({ reducers, reducerCombiner, preloadedState, enhancer })`](#initializestore-reducers-reducercombiner-preloadedstate-enhancer-)
+  * [`store.create({ reducers, reducerCombiner, preloadedState, enhancer })`](#storecreate-reducers-reducercombiner-preloadedstate-enhancer-)
     + [Arguments](#arguments)
     + [Returns](#returns)
     + [Examples](#examples)
@@ -20,28 +20,23 @@ Never write a reducer, an action, or worry about immutability again!
       - [Store with vanilla reducers](#store-with-vanilla-reducers)
       - [Store with vanilla reducers and base state](#store-with-vanilla-reducers-and-base-state)
       - [Store with vanilla reducers and react-router](#store-with-vanilla-reducers-and-react-router)
-  * [`store.select(stateKey, [path])`](#storeselectstatekey-path)
+  * [`store([storeKey])`](#storestorekey)
     + [Arguments](#arguments-1)
     + [Returns](#returns-1)
-  * [`store.select(...).set(valueOrFunction, [actionCustomization])`](#storeselectsetvalueorfunction-actioncustomization)
-    + [Arguments](#arguments-2)
-    + [Returns](#returns-2)
     + [Examples](#examples-1)
-      - [Value Set](#value-set)
-      - [Function Set](#function-set)
-      - [Customized Action](#customized-action)
-  * [`store.select(...).get([defaultValue])`](#storeselectgetdefaultvalue)
-    + [Arguments](#arguments-3)
-    + [Returns](#returns-3)
+  * [`storeObject.set([path], payload)`](#storeobjectsetpath-payload)
+    + [Arguments](#arguments-2)
     + [Examples](#examples-2)
-  * [`store.set(valueOrFunction, [actionCustomization])`](#storesetvalueorfunction-actioncustomization)
-    + [Arguments](#arguments-4)
+      - [Value `.set`](#value-set)
+      - [Function `.set`](#function-set)
+  * [`storeObject.action([path], action)`](#storeobjectactionpath-action)
+    + [Arguments](#arguments-3)
     + [Examples](#examples-3)
-      - [Value Set](#value-set-1)
-      - [Function Set](#function-set-1)
-  * [`store.get()`](#storeget)
-    + [Arguments](#arguments-5)
-    + [Returns](#returns-4)
+      - [Action method](#action-method)
+      - [Action creator method](#action-creator-method)
+  * [`storeObject.get([path, defaultValue])`](#storeobjectgetpath-defaultvalue)
+    + [Arguments](#arguments-4)
+    + [Returns](#returns-2)
     + [Examples](#examples-4)
 
 <!-- tocstop -->
@@ -56,20 +51,20 @@ Most of the following you'll recognize from setting up Redux.
     npm install --save no-boilerplate-redux
     ```
 
-2. Import `initializeStore` from `no-boilerplate-redux` in your app, and use it like redux's `createStore`.
+2. Import `store` from `no-boilerplate-redux` in your app, and use it like redux's `createStore`.
 
     ```jsx
     /* index.jsx */
 
-    // import initializeStore
-    import { initializeStore } from 'no-boilerplate-redux'
+    // import store
+    import store from 'no-boilerplate-redux'
 
-    // initialize your store and export it so we can set state on it
-    export const store = initializeStore()
+    // create your store and export it so we can set state on it
+    export const myStore = store.create()
 
     // use the imported store
     render(
-      <Provider store={store}>
+      <Provider store={myStore}>
         <App />
       </Provider>,
       document.getElementById('root')
@@ -97,20 +92,18 @@ Most of the following you'll recognize from setting up Redux.
     ```jsx
     /* MyComponent.jsx or MyService.js or AnythingElse.really */
 
-    import { store } from './index.js' // this is the store you created
+    import store from 'no-boilerplate-redux'
 
-    // .select to select what part of the store you're modifying (and an optional path)
-    // .set takes a value or a function to set the selected storeBranch
+    // store() gets your global store
+    // .set an optional path and a value (to replace state with) or a function (which should return new state) 
 
-    store
-      .select('count')
-      .set(count => ++count)
+    store()
+      .set('count', count => ++count)
 
-    store
-      .select('users', '["Nathaniel Hutchins"].title')
-      .set('Web Developer')
+    store()
+      .set('users["Nathaniel Hutchins"].title', 'Web Developer')
 
-    store
+    store()
       .set(store => {
         store.username = "MynockSpit"
         return store
@@ -119,18 +112,18 @@ Most of the following you'll recognize from setting up Redux.
 
 ## Integrations
 
-Integrating with redux (and no-boilerplate-redux) often as simple as customizing the initial configuration. Where vanilla redux uses `createStore`, `no-boilerplate-redux` uses `initializeStore`. The parameters these two functions take are fundamentally the same. In cases where only initial configuration is need, no-boilerplate-redux is no harder to integrate with than vanilla redux.
+Integrating with redux (and no-boilerplate-redux) often as simple as customizing the initial configuration. Where vanilla redux uses `createStore`, `no-boilerplate-redux` uses `store.create`. The parameters these two functions take are fundamentally the same. In cases where only initial configuration is need, no-boilerplate-redux is no harder to integrate with than vanilla redux.
 
-See the docs on [`initializeStore`](#initializestore-reducers-reducercombiner-preloadedstate-enhancer-) for details on what's different.
+See the docs on [`store.create`](#storecreate-reducers-reducercombiner-preloadedstate-enhancer-) for details on what's different.
 
 ### Integration with Redux Dev Tools
 
-Redux Dev Tools integrates by providing an enhancer. Use `initializeStore`'s `enhancer` prop to set it. 
+Redux Dev Tools integrates by providing an enhancer. Use `store.create`'s `enhancer` prop to set it. 
 
 #### Basic integration example (no middlewares)
 
 ```js
-const store = initializeStore({
+const myStore = store.create({
   enhancer: window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
 });
 ```
@@ -142,7 +135,7 @@ import { createStore, applyMiddleware, compose } from 'redux';
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
 
-export const store = initializeStore({
+export const myStore = store.create({
   enhancer: composeEnhancers(
     applyMiddleware(...middleware)
   ),
@@ -157,13 +150,13 @@ This example uses connected-react-router to integrate with redux.
 
 ```js
 import { applyMiddleware, compose, combineReducers } from 'redux'
-import { initializeStore } from 'no-boilerplate-redux'
+import store from 'no-boilerplate-redux'
 import { connectRouter, routerMiddleware } from 'connected-react-router'
 import { createBrowserHistory } from 'history'
 
 export const history = createBrowserHistory(...config)
 
-export const store = initializeStore({
+export const myStore = store.create({
   reducerCombiner: (reducers) => connectRouter(history)(combineReducers(reducers)),
   enhancer: compose(applyMiddleware(routerMiddleware(history))),
 })
@@ -189,9 +182,9 @@ no-boilerplate-redux sets the `nbpr` property on the `meta` object of your actio
 
 ## API
 
-### `initializeStore({ reducers, reducerCombiner, preloadedState, enhancer })`
+### `store.create({ reducers, reducerCombiner, preloadedState, enhancer })`
 
-Initializes the Redux store for use with no-boilerplate-redux.
+Creates the Redux store for use with no-boilerplate-redux.
 
 #### Arguments
 `[reducers={}] (Object)`: An object whose values are standard Redux reducers. Not necessary if you have no standard Redux reducers. In vanilla redux, this is the object you pass into [`combineReducers`](https://github.com/reduxjs/redux/blob/master/docs/api/combineReducers.md).
@@ -214,7 +207,7 @@ createStore(
 )
 
 // becomes ...
-initializeStore({
+store.create({
   reducers: myReducers,
   reducerCombiner: combineReducers,
   preloadedState: myBaseStateObject,
@@ -223,23 +216,25 @@ initializeStore({
 ```
 
 #### Returns
-`store`: the store object created; used to `.select` parts of state and then `.set` them later.
+`store`: the store object created. This is normally used for things like passing to a provider. 
 
 #### Examples
 
 ##### Basic store
 ```js
-import { initializeStore } from 'no-boilerplate-redux'
+import store from 'no-boilerplate-redux'
 
-export const store = initializeStore()
+const myStore = store.create()
+
+// use store e.g. in a react-redux <Provider> component
 ```
 
 ##### Store with vanilla reducers
 ```js
-import { initializeStore } from 'no-boilerplate-redux'
+import store from 'no-boilerplate-redux'
 import baseReducers from './reducers'
 
-export const store = initializeStore({
+const myStore = store.create({
   reducers: baseReducers
 })
 ```
@@ -247,7 +242,7 @@ export const store = initializeStore({
 ##### Store with vanilla reducers and base state
 ```js
 // create a new store with vanilla reducer for 'albums' and default values for 'albums' and 'artists'
-import { initializeStore } from 'no-boilerplate-redux'
+import store from 'no-boilerplate-redux'
 import albums from './albums/reducer'
 
 let myReducers = { albums: albums }
@@ -269,225 +264,96 @@ let myPreloadedState = {
     }
   }
 
-export const store = initializeStore({
-  reducers: myReducers, 
+const myStore = store.create({
+  reducer: myReducers, 
   preloadedState: myPreloadedState
 })
+
+// use store e.g. in a react-redux <Provider> component
+
 ```
 
 ##### Store with vanilla reducers and react-router
 ```js
-import { initializeStore } from 'no-boilerplate-redux'
+import store from 'no-boilerplate-redux'
 import myReducers from './reducers'
 import { applyMiddleware, compose, combineReducers } from 'redux'
 import { routerMiddleware, connectRouter } from 'connected-react-router'
 
-export const store = initializeStore({
-  reducers: myReducers,
-  reducerCombiner: (reducers) => connectRouter(history)(combineReducers(reducers)),
+const reducer = connectRouter(history)(combineReducers(myReducers))
+
+const myStore = store.create({
+  reducer: reducer,
   enhancer: compose(applyMiddleware(routerMiddleware(history)))
 })
+
+// use store e.g. in a react-redux <Provider> component
+
 ```
 
 ---
 
-### `store.select(stateKey, [path])`
+### `store([storeKey])`
 
-Selects the state you're going to use and returns an object with modification methods. 
-
-#### Arguments
-`stateKey (string)`: The key of the state object you want to interact with  
-`path (string OR Array)`: The path to specific data (uses [`lodash`](https://github.com/lodash/lodash)-style paths)
-
-#### Returns
-`(Object)`: an object with the `.set` and `.get` methods (see below)
-
----
-
-### `store.select(...).set(valueOrFunction, [actionCustomization])`
-
-Sets the selected state's path to the value specified. If path is not set, replaces the state with the value specified.
+Get a store. While it is possible to use the generated store directly, this is the recommended way to interact with stores b/c it prevents store from becoming singletons. 
 
 #### Arguments
 
-`valueOrFunction (value OR Function)`: If this is a function, it is run, and the value returned is the new state. Function is passed the old state as an argument.
-`actionCustomization (string OR Object)`: If this is a string, it is appended to the default type to make it more specific. If it is an object, the properties on the object are merged into the action.
-
-#### Returns
-`action (Object)`: a copy of the action fired; useful for testing your Function Sets
-
-#### Examples
-
-##### Value Set
-
-```js
-// developers: null
- 
-// replace the entire developers store
-store.select('developers').set({
-  "1": { name: "Nathaniel", title: "Web Developer" }
-  "2": { name: "Eddie", title: "Web Developer" }
-}, "EDDIE_NATHANIEL")
-
-// action.type: SET_DEVELOPERS_EDDIE_NATHANIEL
-// developers: {
-//   "1": { name: "Nathaniel", title: "Web Developer" }
-//   "2": { name: "Eddie", title: "Web Developer" }
-// }
-
-// use lodash-style set to deeply set data
-store.select('developers', '1.name').set("Nathaniel Hutchins")
-
-// action.type: SET_DEVELOPERS
-// developers: {
-//   "1": { name: "Nathaniel Hutchins", title: "Web Developer" }
-//   "2": { name: "Eddie", title: "Web Developer" }
-// }
-```
-
-##### Function Set
-
-```js
-// todos: [
-//   { text: "write documentation", complete: true },
-//   { text: "add support for middleware", complete: false },
-//   { text: "take a break from writing code", complete: false }
-// ]
-
-// remove completed todos from the store
-store
-  .select('todos')
-  .set(data => data.filter((todo) => !todo.complete))
-
-// action.type: SET_TODOS_COMPLETE_TODO
-// todos: [
-//   { text: "add support for middleware", complete: false },
-//   { text: "take a break from writing code", complete: false }
-// ]
-```
-
-##### Customized Action
-
-```js
-// music: {
-//   "This Must Be The Place": {
-//     artist: "Talking Heads", plays: 12, skips: 0
-//   },
-//   "Burning Down The House": {
-//     artist: "Talking Heads", plays: 8, skips: 0
-//   }
-// }
-
-// increment play count
-store
-  .select('music', '["Burning Down The House"].plays')
-  .set((plays) => plays + 1, {
-    type: "MY_COOL_ACTION_TYPE",
-    meta: {
-      logger: false
-    }
-  })
-
-// action.type: "MY_COOL_ACTION_TYPE",
-// action.meta: {
-//   logger: false
-// }
-//
-// music: {
-//   "This Must Be The Place": {
-//     artist: "Talking Heads", plays: 12, skips: 0
-//   },
-//   "Burning Down The House": {
-//     artist: "Talking Heads", plays: 9, skips: 0
-//   }
-// }
-```
-
----
-
-### `store.select(...).get([defaultValue])`
-
-#### Arguments
-
-Gets the value at the selected state's path. Returns the default value (if provided) or undefined if the value does not exist. Functionally equivalent to `_.get(store.getState(), fullPath, defaultValue)` where fullPath is the joined `path` and `stateKey` from the `.select`).
-
-`defaultValue (*)`: If the property doesn't exist on the store, return this default value. 
+`[storeKey] (string OR Array)`: The name of the store you want to access. If not provided, returns the default global store.
 
 #### Returns
 
-`(*)`: The value on the store or the defaultValue specified.
+`storeObject`: the store object with chaining methods (see below)
 
 #### Examples
 
 ```js
-// developers: {
-//   "1": { name: "Nathaniel", title: "Web Developer" }
-//   "2": { name: "Eddie", title: "Web Developer" }
-// }
+import store from 'no-boilerplate-redux'
 
-// use lodash-style set to deeply set data
-store.select('developers', '1.name').get() // --> "Nathaniel"
-store.select('developers', '10.name').get(false) // --> false
-```
+const storeObject = store()
 
 ---
 
-### `store.set(valueOrFunction, [actionCustomization])`
+```
 
-Sets the entire store to the value specified (or returned).
+### `storeObject.set([path], payload)`
+
+Sets the store to an arbitrary value. Takes an optional path to scope the changes. NOTE: It is recommended to use `store()` (see above) to get reference your store. All examples use this method.
 
 #### Arguments
 
-`valueOrFunction (value OR Function)`: If this is a function, it is run, and the value returned is the new state. Function is passed the old state as an argument.
-`actionCustomization (string OR Object)`: If this is a string, it is appended to the default type to make it more specific. If it is an object, the properties on the object are merged into the action.
+`[path] (string OR Array)`: The lodash-style path (string or array) representing where in the store to modify data. If not specified, the selection is the entire store.  
+`payload (value OR Function)`: If this is a value, replace the selected state with this value. If this is a function, it is run, and the value returned is the new state. Function is passed the old state as an argument.
 
 #### Examples
 
-##### Value Set
+##### Value `.set`
 
 ```js
-// initial store: {
+// initial store = {
 //   developers: null
 // }
  
 // replace the entire developers store
-store.set({
+storeObject.set({
   developers: {
     "1": { name: "Nathaniel", title: "Web Developer" }
     "2": { name: "Eddie", title: "Web Developer" }
   }
-}, "EDDIE_NATHANIEL")
+})
 
-// action.type: SET_DEVELOPERS_EDDIE_NATHANIEL
-// final store: {
+// final store = {
 //   developers: {
 //     "1": { name: "Nathaniel", title: "Web Developer" }
 //     "2": { name: "Eddie", title: "Web Developer" }
 //   }
 // }
-
-// use lodash-style set to deeply set data
-store.set({
-  developers: {
-    "1": { name: "Nathaniel", title: "Web Developer" }
-  },
-  username: "MynockSpit"
-})
-
-// two actions fired: SET_DEVELOPERS and SET_USERNAME
-// final store: {
-//   developers: {
-//     "1": { name: "Nathaniel Hutchins", title: "Web Developer" }
-//     "2": { name: "Eddie", title: "Web Developer" }
-//   }
-//   username: "MynockSpit"
-// }
 ```
 
-##### Function Set
+##### Function `.set`
 
 ```js
-// initial store: {
+// initial store = {
 //   todos: [
 //     { text: "write documentation", complete: true },
 //     { text: "add support for middleware", complete: false },
@@ -496,43 +362,148 @@ store.set({
 // }
 
 // remove completed todos from the store
-store.set(store => {
+storeObject.set(store => {
   store.todos = store.todos.filter((todo) => !todo.complete)
   return store
 })
 
-// action.type: SET_TODOS
-// final store: {
+// final store = {
 //   todos: [
 //     { text: "add support for middleware", complete: false },
 //     { text: "take a break from writing code", complete: false }
 //   ]
 // }
+```
 
+```js
+// initial store = {
+//   todos: [
+//     { text: "write documentation", complete: true },
+//     { text: "add support for middleware", complete: false },
+//     { text: "take a break from writing code", complete: false }
+//   ]
+// }
 
 // entirely re-write store
-store.set(store => {
+storeObject.set(store => {
   return {
     username: "MynockSpit"
   }
 })
 
-// two actions fired: SET_TODOS & SET_USERNAME
-// final store: {
+// final store = {
 //   todos: null,
 //   username: "MynockSpit"
 // }
 ```
 
-### `store.get()`
+---
+
+### `storeObject.action([path], action)`
+
+Sets the store to an arbitrary value using an action / action creator. Takes an optional path to scope the changes.
 
 #### Arguments
 
-Alias to store.getState(). Throws if passed any arguments.
+`[path] (string OR Array)`: The lodash-style path (string or array) representing where in the store to modify data. If not specified, the selection is the entire store.  
+`action (Object OR Function)`: If this is an Object, treat it like a redux action, and fire it. If this is a Function, treat it like a action creator, run it, then fire the resulting action. Function is passed the old state as an argument.
+
+#### Examples
+
+##### Action method
+
+```js
+// initial store = {
+//   developers: null
+// }
+ 
+// replace the entire developers store
+storeObject.action({
+  type: "ADD_NATHANIEL_EDDIE",
+  payload: {
+    developers: {
+      "1": { name: "Nathaniel", title: "Web Developer" }
+      "2": { name: "Eddie", title: "Web Developer" }
+    }
+  }
+})
+
+// action type = "ADD_NATHANIEL_EDDIE"
+// final store = {
+//   developers: {
+//     "1": { name: "Nathaniel", title: "Web Developer" }
+//     "2": { name: "Eddie", title: "Web Developer" }
+//   }
+// }
+```
+
+##### Action creator method
+
+```js
+// initial store = {
+//   todos: [
+//     { text: "write documentation", complete: true },
+//     { text: "add support for middleware", complete: false },
+//     { text: "take a break from writing code", complete: false }
+//   ]
+// }
+
+// remove completed todos from the store
+storeObject.action(store => {
+  store.todos = store.todos.filter((todo) => !todo.complete)
+  return {
+    type: "DELETE_COMPLETED_TODOS",
+    payload: store
+  }
+})
+
+// action type = "DELETE_COMPLETED_TODOS"
+// final store = {
+//   todos: [
+//     { text: "add support for middleware", complete: false },
+//     { text: "take a break from writing code", complete: false }
+//   ]
+// }
+```
+
+```js
+// initial store = {
+//   todos: [
+//     { text: "write documentation", complete: true },
+//     { text: "add support for middleware", complete: false },
+//     { text: "take a break from writing code", complete: false }
+//   ]
+// }
+
+// entirely re-write store
+// type is not required
+storeObject.action(store => {
+  return {
+    payload: {
+      username: "MynockSpit"
+    }
+  }
+})
+
+// final store = {
+//   username: "MynockSpit"
+// }
+```
+
+---
+
+### `storeObject.get([path, defaultValue])`
+
+Get the store, or a part of the store. 
+
+#### Arguments
+
+`[path] (string OR Array)`: The lodash-style path (string or array) representing where in the store to look for state. If not specified, the entire store is returned.  
+`[defaultValue] (*)`: The value to default to if there is no value at the path. Only valid if a path is specified. 
 
 #### Returns
 
-`Object`: An object representing the current value of the store.
+`*`: The value at the store
 
 #### Examples
 
@@ -542,10 +513,38 @@ Alias to store.getState(). Throws if passed any arguments.
 //   "2": { name: "Eddie", title: "Web Developer" }
 // }
 
-store.get() 
+storeObject.get()
 
-// { developers: {
+// Note, the above is identical to store().get()
+
+{ developers: {
+  "1": { name: "Nathaniel", title: "Web Developer" }
+  "2": { name: "Eddie", title: "Web Developer" }
+} }
+
+```
+
+```js
+// developers: {
 //   "1": { name: "Nathaniel", title: "Web Developer" }
 //   "2": { name: "Eddie", title: "Web Developer" }
-// } }
+// }
+
+storeObject.get('developers[1]')
+
+{ name: "Nathaniel", title: "Web Developer" }
+
+```
+
+
+```js
+// developers: {
+//   "1": { name: "Nathaniel", title: "Web Developer" }
+//   "2": { name: "Eddie", title: "Web Developer" }
+// }
+
+storeObject.get('developers[4]', 'DEFAULT VALUE')
+
+'DEFAULT VALUE'
+
 ```

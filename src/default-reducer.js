@@ -1,19 +1,17 @@
 import lodash_get from 'lodash/get'
 import { applyPatches } from 'immer'
 
-export function defaultReducer(state = {}, action) {
-  const payload = lodash_get(action, 'payload', {})
-
+export function defaultReducer(state = {}, { meta, payload }) {
   let returnState = state
 
-  if (payload.patch) {
+  if (meta.nbpr === 'UPDATE') {
     if (state === undefined || state === null) {
       returnState = {}
     }
 
-    returnState = applyPatches(returnState, payload.patch)
-  } else if (payload.hasOwnProperty('replace')) {
-    returnState = payload.replace
+    returnState = applyPatches(returnState, payload)
+  } else if (meta.nbpr === 'REPLACE') {
+    returnState = payload
   }
 
   return returnState

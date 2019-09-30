@@ -4,7 +4,7 @@ import lodash_get from 'lodash/get'
 
 import { createDraft, finishDraft } from 'immer'
 
-export function getPatches(store, valOrFn, path) {
+export function getPatches({store, payload, action, path}) {
   let state = store.getState()
 
   // default state from both undefined and null to {} if we have a path
@@ -15,39 +15,68 @@ export function getPatches(store, valOrFn, path) {
     let notFunction = typeof state !== 'function'
 
     if (notObject && notFunction) {
-      console.error(`Not updating store. To use a path, your store must be either an Object, Array or Function, but got ${typeof state} :`, state)
+      const error = `To use a path, your store must be either an Object, Array or Function, but got ${typeof state}`
+      console.error(error, state)
+      throw new Error(error)
+    }
+  }
 
-      return
+  // if we don't throw here, the function continues "successfully" and throws obliquely later. :s
+  if (action) {
+    let notObject = typeof action !== 'object' 
+    let notFunction = typeof action !== 'function'
+
+    if (notObject && notFunction) {
+      const error = `Actions must be either an Object or Function, but got ${typeof action}`
+      console.error(error, action)
+      throw new Error(error)
     }
   }
 
   // Try to create a draft. If we can't, it's a value we can't proxy (i.e. null, boolean, number)
   let draft = safeCreateDraft(state)
 
-  // modify the state
-  // if we're updating using a fn...
-  if (typeof valOrFn === 'function') {
-    if (path) {
-      draft = lodash_set(draft, path, valOrFn(lodash_get(draft, path), path))
-    } else {
-      draft = valOrFn(draft)
+  // this is a little bit of a mess.
+  // We're trying to take four different shapes and convert them into one shape
+  // `action`  (function) -> action() gives us the `returnAction`
+  // `action`  (non-fn)   -> action is the `returnAction`
+  // `payload` (function) -> payload() gives us the payload of `returnAction`
+  // `payload` (non-fn)   -> payload is the payload of `returnAction`
+
+  // if we were passed an action, process the payload
+  // if we were passed a payload, process the payload and stuff it in an action
+  const actionOrPayload = action || payload
+  const isFunction = typeof (actionOrPayload) === 'function'
+
+  let returnAction
+
+  if (isFunction) {
+    returnAction = actionOrPayload(path ? lodash_get(draft, path) : draft)
+  } else {
+    returnAction = actionOrPayload
+  }
+
+  if (!action) {
+    returnAction = {
+      payload: returnAction
     }
   }
 
-  // if we're replacing/merging in a value
+  // handle the payload so that we can do it all in one step
+  if (path) {
+    returnAction.payload = lodash_set(draft, path, returnAction.payload)
+  }
+
+  let patches = safeBuildPatches(returnAction.payload)
+
+  if (!patches) 
+    lodash_set(returnAction, 'meta.nbpr', 'REPLACE')
   else {
-    if (path) {
-      draft = lodash_set(draft, path, valOrFn)
-    } else {
-      draft = valOrFn
-    }
+    returnAction.payload = patches
+    lodash_set(returnAction, 'meta.nbpr', 'UPDATE')
   }
 
-  let patches = safeBuildPatches(draft)
-
-  if (!patches) return { replace: draft }
-
-  return { patch: patches }
+  return returnAction
 }
 
 function safeCreateDraft(state) {
@@ -75,10 +104,7 @@ function safeBuildPatches(draft) {
     finishDraft(draft, patches => changes.push(...patches))
   } catch (error) {
     // or (if it wasn't a draft) replace it
-    if (
-      error.message !==
-      "First argument to `finishDraft` must be a draft returned by `createDraft`"
-    ) {
+    if (error.message !== "First argument to `finishDraft` must be a draft returned by `createDraft`") {
       throw error
     }
 
