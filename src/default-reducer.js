@@ -1,7 +1,7 @@
 import lodash_get from 'lodash/get'
 import { applyPatches } from 'immer'
 
-export function defaultReducer(state = {}, { meta, payload }) {
+export function nbprReducer(state = {}, { meta, payload }) {
   let returnState = state
 
   if (meta.nbpr === 'UPDATE') {

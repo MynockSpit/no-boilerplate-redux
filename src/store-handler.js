@@ -1,16 +1,11 @@
-import {
-  combineReducers,
-  createStore as createReduxStore
-} from 'redux'
+import { createStore } from 'redux'
 
 import { set } from './set'
 import { get } from './get'
 import { action } from './action'
-import { defaultReducer } from './default-reducer';
+import { nbprReducer } from './default-reducer';
 
 import lodash_get from 'lodash/get'
-
-function noopReducer(state = null) { return state }
 
 const stores = {}
 
@@ -21,54 +16,46 @@ const stores = {}
  * 
  * @param {Object} config   A config object used to reference, create and recreate the store.
  * @param {String} [key='global']   A key used to save and get the store.
- * @param {Object|Function} [config.reducer={}]   A reducer function or an object of reducers function to include alongside no-boilerplate-redux
- * @param {Object} [config.preloadedState={}]   An object of default state; does not require `reducer` param to function
+ * @param {Object|Function} [config.reducer]   A reducer function or an object of reducers function to include alongside no-boilerplate-redux
+ * @param {Object} [config.reducerCombiner=combineReducers]   If reducer is an object and not a function, the function we use to combine them. Defaults to redux's combineReducers
+ * @param {Object} [config.preloadedState]   An object of default state; does not require `reducer` param to function
  * @param {Function} [config.enhancer]   A function to enhance your store with third-party capabilities. (see  https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md)
  */
-export const createStore = ({ key = 'global', reducer = noopReducer, preloadedState = {}, enhancer } = {}) => {
-  if (process.env.NODE_ENV !== 'production' && stores[key]) {
-    console.warn(`Store with key "${key}" already initialized! Overwriting reference to original store with this key.`)
-  }
-
-  let rootReducer = reducer
-  let addReducer
-  let reducerObject
-
-  if (reducer && typeof reducer === 'object') {
-    reducerObject = reducer
-    rootReducer = combineReducers(reducerObject)
-
-    addReducer = (key) => {
-      if (key && !reducerObject[key]) {
-        reducerObject[key] = noopReducer
-        rootReducer = combineReducers(reducerObject)
-      }
-    }
-
-    Object.keys(preloadedState).forEach(addReducer)
+export const makeStore = ({
+  key = 'global',
+  reducer: userReducer,
+  preloadedState,
+  enhancer
+} = {}) => {
+  if (stores[key]) {
+    throw new Error(`Store with key "${key}" already initialized! If you wanted a second store please use another key, and if you wanted to clear the store, use \`store().set()\`.`)
   }
 
   let passThroughArguments = [preloadedState, enhancer]
 
   function reducerRouter(state, action) {
-    let nbprMeta = lodash_get(action, 'meta.nbpr', Symbol.for('meta.nbpr-not-set'))
+    let nbprMeta = lodash_get(action, 'meta.nbpr', Symbol.for('nbpr-meta-not-set'))
 
-    // if meta.nbpr is not set, use the passed in rootReducer
-    if (nbprMeta === Symbol.for('meta.nbpr-not-set'))
-      return rootReducer(state, action)
+    // if meta.nbpr is not set, don't bother with running the nbprReducer
+    if (nbprMeta === Symbol.for('nbpr-meta-not-set'))
+      return userReducer ? userReducer(state, action) : state
 
-    // else, NO BOILERPLATE!!!
-    return defaultReducer(state, action)
+    // if the user didn't provide a reducer, just to nbpr
+    if (!userReducer)
+      return nbprReducer(state, action)
+
+    // if the user provided one, run it to make sure we don't remove anything we're not supposed to.
+    return userReducer(nbprReducer(state, action), {
+      ...action,
+      type: '', // clear the type so we don't accidentally trigger some default reducers
+    })
   }
 
-  let store = createReduxStore(reducerRouter, ...passThroughArguments)
+  let store = createStore(reducerRouter, ...passThroughArguments)
 
   store.set = set.bind(store)
   store.get = get.bind(store)
   store.action = action.bind(store)
-
-  if (addReducer)
-    store.addReducer = addReducer
 
   stores[key] = store
 

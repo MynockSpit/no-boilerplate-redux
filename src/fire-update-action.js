@@ -43,17 +43,11 @@ export function fireUpdateAction({ store, path, payload, action }) {
 
   if (lodash_get(baseAction, 'meta.nbpr') === 'UPDATE') {
     canOverride.type = 'UPDATE'
-
-    if (store.addReducer)
-      baseAction.payload.forEach(({ path }) => store.addReducer(path[0]))
   }
 
   // We do a replace in every other case. This is so that we can replace with falsy values.
   else {
     canOverride.type = 'REPLACE'
-
-    if (store.addReducer && typeof baseAction.payload === 'object')
-      Object.keys(baseAction.payload).forEach(key => store.addReducer(key))
   } 
   
   // customize the action

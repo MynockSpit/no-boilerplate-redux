@@ -41,9 +41,13 @@ export default [
           unsafe: true,
           unsafe_comps: true,
           warnings: false
+        },
+        mangle: {
+          toplevel: true,
+          properties: true
         }
       }),
-      visualizer({ filename: 'stats/commonjs-prod.html' })
+      visualizer({ filename: 'stats/commonjs.min.html' })
     ]
   },
 
@@ -80,9 +84,13 @@ export default [
           unsafe: true,
           unsafe_comps: true,
           warnings: false
+        },
+        mangle: {
+          toplevel: true,
+          properties: true
         }
       }),
-      visualizer({ filename: 'stats/es.html' })
+      visualizer({ filename: 'stats/es.min.html' })
     ]
   }
 ]

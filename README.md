@@ -11,39 +11,45 @@ Never write a reducer, an action, or worry about immutability again!
     + [Advanced integration example (with middlewares)](#advanced-integration-example-with-middlewares)
   * [Integration with React Router (using `connected-react-router`)](#integration-with-react-router-using-connected-react-router)
 - [A note on Middleware](#a-note-on-middleware)
+- [Migrating to `no-boilerplate-redux`](#migrating-to-no-boilerplate-redux)
 - [API](#api)
-  * [`store.create({ reducers, reducerCombiner, preloadedState, enhancer })`](#storecreate-reducers-reducercombiner-preloadedstate-enhancer-)
+  * [`makeStore({ key, reducer, preloadedState, enhancer })`](#makestore-key-reducer-preloadedstate-enhancer-)
     + [Arguments](#arguments)
     + [Returns](#returns)
+    + [Usage Notes](#usage-notes)
     + [Examples](#examples)
       - [Basic store](#basic-store)
       - [Store with vanilla reducers](#store-with-vanilla-reducers)
       - [Store with vanilla reducers and base state](#store-with-vanilla-reducers-and-base-state)
       - [Store with vanilla reducers and react-router](#store-with-vanilla-reducers-and-react-router)
-  * [`store([storeKey])`](#storestorekey)
+  * [`makeReducer(reducers, [combiner])`](#makereducerreducers-combiner)
     + [Arguments](#arguments-1)
     + [Returns](#returns-1)
     + [Examples](#examples-1)
-  * [`storeObject.set([path], payload)`](#storeobjectsetpath-payload)
+  * [`store([storeKey])`](#storestorekey)
     + [Arguments](#arguments-2)
+    + [Returns](#returns-2)
     + [Examples](#examples-2)
+  * [`storeObject.set([path], payload)`](#storeobjectsetpath-payload)
+    + [Arguments](#arguments-3)
+    + [Examples](#examples-3)
       - [Value `.set`](#value-set)
       - [Function `.set`](#function-set)
   * [`storeObject.action([path], action)`](#storeobjectactionpath-action)
-    + [Arguments](#arguments-3)
-    + [Examples](#examples-3)
+    + [Arguments](#arguments-4)
+    + [Examples](#examples-4)
       - [Action method](#action-method)
       - [Action creator method](#action-creator-method)
   * [`storeObject.get([path, defaultValue])`](#storeobjectgetpath-defaultvalue)
-    + [Arguments](#arguments-4)
-    + [Returns](#returns-2)
-    + [Examples](#examples-4)
+    + [Arguments](#arguments-5)
+    + [Returns](#returns-3)
+    + [Examples](#examples-5)
 
 <!-- tocstop -->
 
 ## Usage (with React)
 
-Most of the following you'll recognize from setting up Redux.
+Most of the following you'll recognize from setting up Redux. This assumes you weren't using Redux previously. Please see the migration section for details on how to use vanilla reducers with `no-boilerplate-redux`.
 
 1. Install no-boilerplate-redux
 
@@ -51,18 +57,31 @@ Most of the following you'll recognize from setting up Redux.
     npm install --save no-boilerplate-redux
     ```
 
-2. Import `store` from `no-boilerplate-redux` in your app, and use it like redux's `createStore`.
+2. Create your store using from `no-boilerplate-redux` in your app, and use it like redux's `makeStore`.
+
+    ```js
+    // import store
+    import { makeStore, makeReducer } from 'no-boilerplate-redux'
+
+    // create your store so you can attach it to your app
+    const myStore = makeStore()
+    ```
+
+    If you already have reducers, you can use them like so:
+
+    ```js
+    import { makeStore, makeReducer } from 'no-boilerplate-redux'
+    import { baseReducers } from './reducers'
+
+    const myStore = makeStore({
+      reducer: makeReducer(baseReducers)
+    })
+    ```
+
+3. Connect your React components to your state. This causes the "magic" auto-update we're familiar with from React. (example uses [`react-redux`](https://github.com/reduxjs/react-redux))
 
     ```jsx
-    /* index.jsx */
-
-    // import store
-    import store from 'no-boilerplate-redux'
-
-    // create your store and export it so we can set state on it
-    export const myStore = store.create()
-
-    // use the imported store
+    // Provide the store to your app.
     render(
       <Provider store={myStore}>
         <App />
@@ -71,15 +90,11 @@ Most of the following you'll recognize from setting up Redux.
     )
     ```
 
-3. Connect your React components to your state. This causes the "magic" auto-update we're familiar with from React. (example uses [`react-redux`](https://github.com/reduxjs/react-redux))
-
     ```jsx
-    /* MyComponent.jsx */
-
-    // import the connect function from react-redux
+    // In your component, import the connect function from react-redux
     import { connect } from 'react-redux'
         
-    ...
+    // ...
 
     // connect parts of your state
     const mapStateToProps = ({ count }) => ({ count })
@@ -87,12 +102,12 @@ Most of the following you'll recognize from setting up Redux.
     export default connect(mapStateToProps)(MyComponent)
     ```
 
-4. Import your `store` and use it in your components (or in a services file).
+4. Import `store` and use update and get your store.
 
     ```jsx
     /* MyComponent.jsx or MyService.js or AnythingElse.really */
 
-    import store from 'no-boilerplate-redux'
+    import { store } from 'no-boilerplate-redux'
 
     // store() gets your global store
     // .set an optional path and a value (to replace state with) or a function (which should return new state) 
@@ -112,18 +127,18 @@ Most of the following you'll recognize from setting up Redux.
 
 ## Integrations
 
-Integrating with redux (and no-boilerplate-redux) often as simple as customizing the initial configuration. Where vanilla redux uses `createStore`, `no-boilerplate-redux` uses `store.create`. The parameters these two functions take are fundamentally the same. In cases where only initial configuration is need, no-boilerplate-redux is no harder to integrate with than vanilla redux.
+Integrating with redux (and no-boilerplate-redux) often as simple as customizing the initial configuration. Where vanilla redux uses `createStore`, `no-boilerplate-redux` uses `makeStore`. The parameters these two functions take are fundamentally the same. In cases where only initial configuration is need, no-boilerplate-redux is no harder to integrate with than vanilla redux.
 
-See the docs on [`store.create`](#storecreate-reducers-reducercombiner-preloadedstate-enhancer-) for details on what's different.
+See the docs on [`makeStore`](#storecreate-reducers-reducercombiner-preloadedstate-enhancer-) for details on what's different.
 
 ### Integration with Redux Dev Tools
 
-Redux Dev Tools integrates by providing an enhancer. Use `store.create`'s `enhancer` prop to set it. 
+Redux Dev Tools integrates by providing an enhancer. Use `makeStore`'s `enhancer` prop to set it. 
 
 #### Basic integration example (no middlewares)
 
 ```js
-const myStore = store.create({
+const myStore = makeStore({
   enhancer: window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
 });
 ```
@@ -131,11 +146,12 @@ const myStore = store.create({
 #### Advanced integration example (with middlewares)
 
 ```js
-import { createStore, applyMiddleware, compose } from 'redux';
+import { applyMiddleware, compose } from 'redux';
+import { makeStore } from 'no-boilerplate-redux';
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
 
-export const myStore = store.create({
+export const myStore = makeStore({
   enhancer: composeEnhancers(
     applyMiddleware(...middleware)
   ),
@@ -146,25 +162,38 @@ See [DevTools with Redux](https://github.com/zalmoxisus/redux-devtools-extension
 
 ### Integration with React Router (using `connected-react-router`)
 
-This example uses connected-react-router to integrate with redux.
+This example uses `connected-react-router` to integrate `react-router` with `redux` and `no-boilerplate-redux`.
 
 ```js
-import { applyMiddleware, compose, combineReducers } from 'redux'
-import store from 'no-boilerplate-redux'
+import { applyMiddleware, compose } from 'redux'
+import { makeStore, makeReducer } from 'no-boilerplate-redux'
 import { connectRouter, routerMiddleware } from 'connected-react-router'
 import { createBrowserHistory } from 'history'
+import { todoReducer } from './todos'
+import { userReducer } from './users'
 
-export const history = createBrowserHistory(...config)
+export const history = createBrowserHistory()
 
-export const myStore = store.create({
-  reducerCombiner: (reducers) => connectRouter(history)(combineReducers(reducers)),
-  enhancer: compose(applyMiddleware(routerMiddleware(history))),
+const reducerObject = {
+  todoReducer,
+  userReducer
+}
+
+export const myStore = makeStore({
+  // wrap the store w/ react-router
+  reducer: makeReducer({ // note that this combineReducer is imported from `no-boilerplate-redux`
+    router: connectRouter(history),
+    ...reducers
+  }),
+
+  // enhance the store w/ react-router
+  enhancer: compose(applyMiddleware(routerMiddleware(history)))
 })
 ```
 
 ## A note on Middleware
 
-no-boilerplate-redux sets the `nbpr` property on the `meta` object of your actions. If you use a middleware and overwrite the meta tag or change the `nbpr` property, your no-boilerplate-redux actions won't fire. Be careful you don't overwrite this tag!
+no-boilerplate-redux sets the `nbpr` property on the `meta` object of your actions. If you use a middleware and overwrite the meta tag or change the `nbpr` property, your no-boilerplate-redux actions won't fire. Be careful you don't overwrite or remove this tag!
 
 ```js
 // example action
@@ -175,74 +204,91 @@ no-boilerplate-redux sets the `nbpr` property on the `meta` object of your actio
     path: "Nathaniel Hutchins"
   },
   meta: {
-    nbpr: 'developers' // don't overwrite this!
+    nbpr: 'update' // don't overwrite this!
   }
 }
 ```
 
-## API
+## Migrating to `no-boilerplate-redux`
 
-### `store.create({ reducers, reducerCombiner, preloadedState, enhancer })`
-
-Creates the Redux store for use with no-boilerplate-redux.
-
-#### Arguments
-`[reducers={}] (Object)`: An object whose values are standard Redux reducers. Not necessary if you have no standard Redux reducers. In vanilla redux, this is the object you pass into [`combineReducers`](https://github.com/reduxjs/redux/blob/master/docs/api/combineReducers.md).
-`[reducerCombiner=combineReducers] (Function)`: A function that turns an object of reducers into a single reducing function. Not necessary unless using a library that injects reducers by way of functions. (e.g. connected-react-router) In vanilla redux, this is the function [`combineReducers`](https://github.com/reduxjs/redux/blob/master/docs/api/combineReducers.md).  
-`[preloadedState] (Object)`: The initial state. Identical to the `preloadedState` argument in Redux's `createStore`.[(more info)](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments)  
-`[enhancer] (Function)`: The store enhancer. Identical to the `enhancer` argument in Redux's `createStore`. [(more info)](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments)
-
-All argument are fundamentally the same as the arguments vanilla redux's `createStore` accepts.
-
-- `reducer`, `createStore`'s first argument, has been split into two parts, `reducers` and `reducerCombiner`. Unlike vanilla redux, both are optional. 
-- `preloadedState`, `createStore`'s second and optional argument, is identical and remains optional. See [redux's documentation](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments) for more info.
-- `enhancers`, `createStore`'s third and optional argument, is identical and remains optional. See [redux's documentation](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments) for more info.
+The main difference between `redux`'s `createStore` and `no-boilerplate-redux`'s `makeStore` is that `createStore` takes positional arguments, and `makeStore` takes object arguments. See the example below for the corresponding calls in each. Similarly, we use `makeReducer` instead of `combineReducer`. `makeReducer` is only necessary if you want to start with an object of reducers.
 
 ```js
-// redux's createStore
-createStore(
-  combineReducers(myReducers),
-  myBaseStateObject,
-  myCoolEnhancer
+// redux
+import { createStore, combineReducers } from 'redux'
+
+export const myStore = createStore(
+  combineReducers({ todos: todoReducer, users: userReducer }),          // reducer
+  { todos: [], users: []},                                              // preloadedState
+  window.__REDUX_DEVTOOLS_EXTENSION__()                                 // enhancer
 )
 
-// becomes ...
-store.create({
-  reducers: myReducers,
-  reducerCombiner: combineReducers,
-  preloadedState: myBaseStateObject,
-  enhancer: myCoolEnhancer
+// no-boilerplate-redux
+import { makeStore, makeReducer } from 'no-boilerplate-redux'
+
+export const myStore = makeStore({
+  reducer: makeReducer({ todos: todoReducer, users: userReducer }), // reducer
+  preloadedState: { todos: [], users: []},                              // preloadedState
+  enhancer: window.__REDUX_DEVTOOLS_EXTENSION__()                       // enhancer
 })
 ```
 
+## API
+
+### `makeStore({ key, reducer, preloadedState, enhancer })`
+
+Creates the Redux store for use with `no-boilerplate-redux`. See the migration section above for quirks and caveats.
+
+#### Arguments
+`[key] (String)`: A string representing the key of this  Allows you to use multiple stores.  
+`[reducer] (Function|Object)`: The reducer function. Not necessary if you have no standard Redux reducers. Identical to the `reducer` argument in Redux's [`createStore`](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments).  
+`[preloadedState] (Object)`: The initial state. Identical to the `preloadedState` argument in Redux's [`createStore`](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments).  
+`[enhancer] (Function)`: The store enhancer. Identical to the `enhancer` argument in Redux's [`createStore`](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments).
+
 #### Returns
 `store`: the store object created. This is normally used for things like passing to a provider. 
+
+#### Usage Notes
+
+- Do not use `redux`'s `combineReducers`! Use `makeReducer` instad. If you forget and use `combineReducers`, parts of your store not in your initial `reducers` object will disappear when an action is fired. Example below.
+  ```js
+  // Bad
+  import { combineReducers } from 'redux' 
+  import { makeStore } from 'no-boilerplate-redux' 
+  
+  // Good
+  import { makeStore, makeReducer } from 'no-boilerplate-redux' 
+  ```
+
+- If you use `combineReducers` from `no-boilerplate-redux`, all top-level keys will always be set to `null`. This is the same behavior found in vanilla redux. If you do NOTE use `combineReducers` from `no-boilerplate-redux` there is no restriction on the values you can set.
+
+- If you want to use multiple stores, the second create call **must provide a `key` property**. Multiple stores is not recommended.
 
 #### Examples
 
 ##### Basic store
 ```js
-import store from 'no-boilerplate-redux'
+import { makeStore } from 'no-boilerplate-redux'
 
-const myStore = store.create()
+const myStore = makeStore()
 
 // use store e.g. in a react-redux <Provider> component
 ```
 
 ##### Store with vanilla reducers
 ```js
-import store from 'no-boilerplate-redux'
-import baseReducers from './reducers'
+import { makeStore, makeReducer } from 'no-boilerplate-redux'
+import baseReducers from './reducers' // an object of [key]: [reducer fn]
 
-const myStore = store.create({
-  reducers: baseReducers
+const myStore = makeStore({
+  reducer: makeReducer(baseReducers)
 })
 ```
 
 ##### Store with vanilla reducers and base state
 ```js
 // create a new store with vanilla reducer for 'albums' and default values for 'albums' and 'artists'
-import store from 'no-boilerplate-redux'
+import { makeStore, makeReducer } from 'no-boilerplate-redux'
 import albums from './albums/reducer'
 
 let myReducers = { albums: albums }
@@ -264,31 +310,56 @@ let myPreloadedState = {
     }
   }
 
-const myStore = store.create({
-  reducer: myReducers, 
+const myStore = makeStore({
+  reducer: makeReducer(myReducers), 
   preloadedState: myPreloadedState
 })
 
 // use store e.g. in a react-redux <Provider> component
-
 ```
 
 ##### Store with vanilla reducers and react-router
 ```js
-import store from 'no-boilerplate-redux'
+import { makeStore, makeReducer } from 'no-boilerplate-redux'
 import myReducers from './reducers'
-import { applyMiddleware, compose, combineReducers } from 'redux'
+import { applyMiddleware, compose } from 'redux'
 import { routerMiddleware, connectRouter } from 'connected-react-router'
 
-const reducer = connectRouter(history)(combineReducers(myReducers))
-
-const myStore = store.create({
-  reducer: reducer,
+const myStore = makeStore({
+  reducer: connectRouter(history)(makeReducer(myReducers)),
   enhancer: compose(applyMiddleware(routerMiddleware(history)))
 })
 
 // use store e.g. in a react-redux <Provider> component
+```
 
+---
+
+### `makeReducer(reducers, [combiner])`
+
+#### Arguments
+`reducers (Object)`: An object whose values correspond to different reducer functions that need to be combined into one. One handy way to obtain it is to use ES6 `import * as reducers` syntax. The reducers may never return undefined for any action. Instead, they should return their initial state if the state passed to them was undefined, and the current state for any unrecognized action. Identical to the reducer object you'd pass into `redux`'s [`combineReducers`](https://github.com/reduxjs/redux/blob/master/docs/api/combineReducers.md).  
+ * @param {Function} [combiner]   A function used to combine the reducers object into
+`[combiner] (Function)`: A function used to combine the reducers in the `reducers` object. If not set, defaults to `redux`'s [`combineReducers`](https://github.com/reduxjs/redux/blob/master/docs/api/combineReducers.md).  
+
+#### Returns
+`reducer` (Function): A reducer function that invokes every reducer inside the passed object, adds a null reducer for state keys not provided in the initial object, and builds a state object with the same shape.
+
+#### Examples
+
+```js
+// rootReducer.js
+import { makeReducer } from 'no-boilerplate-redux'
+
+import albumsReducer from './albums'
+import artistsReducer from './artists'
+import songsReducer from './songs'
+
+export const rootReducers = makeReducer({
+  albums: albumsReducer, 
+  artists: artistsReducer, 
+  songs: songsReducer 
+})
 ```
 
 ---
@@ -308,13 +379,12 @@ Get a store. While it is possible to use the generated store directly, this is t
 #### Examples
 
 ```js
-import store from 'no-boilerplate-redux'
+import { store } from 'no-boilerplate-redux'
 
 const storeObject = store()
+```
 
 ---
-
-```
 
 ### `storeObject.set([path], payload)`
 
@@ -333,6 +403,8 @@ Sets the store to an arbitrary value. Takes an optional path to scope the change
 // initial store = {
 //   developers: null
 // }
+import { store } from 'no-boilerplate-redux'
+const storeObject = store()
  
 // replace the entire developers store
 storeObject.set({
@@ -360,6 +432,8 @@ storeObject.set({
 //     { text: "take a break from writing code", complete: false }
 //   ]
 // }
+import { store } from 'no-boilerplate-redux'
+const storeObject = store()
 
 // remove completed todos from the store
 storeObject.set(store => {
@@ -383,6 +457,8 @@ storeObject.set(store => {
 //     { text: "take a break from writing code", complete: false }
 //   ]
 // }
+import { store } from 'no-boilerplate-redux'
+const storeObject = store()
 
 // entirely re-write store
 storeObject.set(store => {
@@ -416,6 +492,8 @@ Sets the store to an arbitrary value using an action / action creator. Takes an 
 // initial store = {
 //   developers: null
 // }
+import { store } from 'no-boilerplate-redux'
+const storeObject = store()
  
 // replace the entire developers store
 storeObject.action({
@@ -447,6 +525,8 @@ storeObject.action({
 //     { text: "take a break from writing code", complete: false }
 //   ]
 // }
+import { store } from 'no-boilerplate-redux'
+const storeObject = store()
 
 // remove completed todos from the store
 storeObject.action(store => {
@@ -474,6 +554,8 @@ storeObject.action(store => {
 //     { text: "take a break from writing code", complete: false }
 //   ]
 // }
+import { store } from 'no-boilerplate-redux'
+const storeObject = store()
 
 // entirely re-write store
 // type is not required
@@ -512,6 +594,8 @@ Get the store, or a part of the store.
 //   "1": { name: "Nathaniel", title: "Web Developer" }
 //   "2": { name: "Eddie", title: "Web Developer" }
 // }
+import { store } from 'no-boilerplate-redux'
+const storeObject = store()
 
 storeObject.get()
 
@@ -521,7 +605,6 @@ storeObject.get()
   "1": { name: "Nathaniel", title: "Web Developer" }
   "2": { name: "Eddie", title: "Web Developer" }
 } }
-
 ```
 
 ```js
@@ -529,11 +612,12 @@ storeObject.get()
 //   "1": { name: "Nathaniel", title: "Web Developer" }
 //   "2": { name: "Eddie", title: "Web Developer" }
 // }
+import { store } from 'no-boilerplate-redux'
+const storeObject = store()
 
 storeObject.get('developers[1]')
 
 { name: "Nathaniel", title: "Web Developer" }
-
 ```
 
 
@@ -542,9 +626,10 @@ storeObject.get('developers[1]')
 //   "1": { name: "Nathaniel", title: "Web Developer" }
 //   "2": { name: "Eddie", title: "Web Developer" }
 // }
+import { store } from 'no-boilerplate-redux'
+const storeObject = store()
 
 storeObject.get('developers[4]', 'DEFAULT VALUE')
 
 'DEFAULT VALUE'
-
 ```
