@@ -25,5 +25,7 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    # install peer deps :(
+    - run: npm install redux lodash
     - run: npm ci
     - run: npm test
