@@ -1,6 +1,4 @@
-import lodash_get from 'lodash/get'
-import lodash_merge from 'lodash/merge'
-import lodash_stringToPath from 'lodash/_stringToPath'
+import _ from 'lodash'
 
 import { getPatches } from './produce'
 
@@ -33,7 +31,7 @@ export function fireUpdateAction({ store, path, payload, action }) {
   let pathAsArray
 
   if (typeof path === 'string' || Array.isArray(path)) {
-    pathAsArray = lodash_stringToPath(path)
+    pathAsArray = _.toPath(path)
 
     if (!pathAsArray.length) pathAsArray = undefined
   }
@@ -41,7 +39,7 @@ export function fireUpdateAction({ store, path, payload, action }) {
   // pre-run the function 
   const baseAction = (action) ? getPatches({store, action, path}) : getPatches({store, payload, path})
 
-  if (lodash_get(baseAction, 'meta.nbpr') === 'UPDATE') {
+  if (_.get(baseAction, 'meta.nbpr') === 'UPDATE') {
     canOverride.type = 'UPDATE'
   }
 
@@ -54,7 +52,7 @@ export function fireUpdateAction({ store, path, payload, action }) {
   // customize the action type, first
   canOverride.type += `_${(pathAsArray ? pathAsArray[0] : 'store').toUpperCase()}`
 
-  const completeAction = lodash_merge(
+  const completeAction = _.merge(
     canOverride,
     baseAction,
     cantOverride

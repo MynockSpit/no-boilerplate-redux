@@ -78,7 +78,7 @@ Most of the following you'll recognize from setting up Redux. This assumes you w
     })
     ```
 
-3. Connect your React components to your state. This causes the "magic" auto-update we're familiar with from React. (example uses [`react-redux`](https://github.com/reduxjs/react-redux))
+3. Connect your React components to your state like you normally would. This causes the "magic" auto-update we're familiar with from React. (example uses [`react-redux`](https://github.com/reduxjs/react-redux))
 
     ```jsx
     // Provide the store to your app.
@@ -90,17 +90,31 @@ Most of the following you'll recognize from setting up Redux. This assumes you w
     )
     ```
 
+    For your `Function` components:
     ```jsx
-    // In your component, import the connect function from react-redux
-    import { connect } from 'react-redux'
+    import { useSelector } from 'react-redux'
         
+    export const MyFunctionalComponent = () => {
+
+      // useSelector subscribes your component the a part of state you return from the interior function
+      const count = useSelector(state => state.count)
+
+      // ...
+    }
+    ```
+
+    For your `Class` components:
+    ```jsx
+    import { connect } from 'react-redux'
+
     // ...
 
-    // connect parts of your state
     const mapStateToProps = ({ count }) => ({ count })
-    
-    export default connect(mapStateToProps)(MyComponent)
+
+    // connect subscribes your component to the parts of state you return from mapStateToProps
+    export default connect(mapStateToProps)(MyClassComponent)
     ```
+
 
 4. Import `store` and use update and get your store.
 
@@ -127,7 +141,7 @@ Most of the following you'll recognize from setting up Redux. This assumes you w
 
 ## Integrations
 
-Integrating with redux (and no-boilerplate-redux) often as simple as customizing the initial configuration. Where vanilla redux uses `createStore`, `no-boilerplate-redux` uses `makeStore`. The parameters these two functions take are fundamentally the same. In cases where only initial configuration is need, no-boilerplate-redux is no harder to integrate with than vanilla redux.
+Integrating with `redux` (and `no-boilerplate-redux`) often as simple as customizing the initial configuration. Where vanilla redux uses `createStore`, `no-boilerplate-redux` uses `makeStore`. The parameters these two functions take are fundamentally the same. In cases where only initial configuration is need, no-boilerplate-redux is no harder to integrate with than vanilla redux.
 
 See the docs on [`makeStore`](#storecreate-reducers-reducercombiner-preloadedstate-enhancer-) for details on what's different.
 

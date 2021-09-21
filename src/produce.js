@@ -1,6 +1,5 @@
 
-import lodash_set from 'lodash/set'
-import lodash_get from 'lodash/get'
+import _ from 'lodash'
 
 import { createDraft, finishDraft } from 'immer'
 
@@ -51,7 +50,7 @@ export function getPatches({store, payload, action, path}) {
   let returnAction
 
   if (isFunction) {
-    returnAction = actionOrPayload(path ? lodash_get(draft, path) : draft)
+    returnAction = actionOrPayload(path ? _.get(draft, path) : draft)
   } else {
     returnAction = actionOrPayload
   }
@@ -64,16 +63,16 @@ export function getPatches({store, payload, action, path}) {
 
   // handle the payload so that we can do it all in one step
   if (path) {
-    returnAction.payload = lodash_set(draft, path, returnAction.payload)
+    returnAction.payload = _.set(draft, path, returnAction.payload)
   }
 
   let patches = safeBuildPatches(returnAction.payload)
 
   if (!patches) 
-    lodash_set(returnAction, 'meta.nbpr', 'REPLACE')
+    _.set(returnAction, 'meta.nbpr', 'REPLACE')
   else {
     returnAction.payload = patches
-    lodash_set(returnAction, 'meta.nbpr', 'UPDATE')
+    _.set(returnAction, 'meta.nbpr', 'UPDATE')
   }
 
   return returnAction
@@ -87,7 +86,7 @@ function safeCreateDraft(state) {
   }
 
   catch (error) {
-    if (error.message !== 'First argument to `createDraft` must be a plain object, an array, or an immerable object') {
+    if (error.message !== '[Immer] First argument to `createDraft` must be a plain object, an array, or an immerable object') {
       throw error
     }
 
@@ -104,7 +103,7 @@ function safeBuildPatches(draft) {
     finishDraft(draft, patches => changes.push(...patches))
   } catch (error) {
     // or (if it wasn't a draft) replace it
-    if (error.message !== "First argument to `finishDraft` must be a draft returned by `createDraft`") {
+    if (error.message !== "[Immer] First argument to `finishDraft` must be a draft returned by `createDraft`") {
       throw error
     }
 
