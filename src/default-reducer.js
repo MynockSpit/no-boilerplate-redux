@@ -1,5 +1,5 @@
-import lodash_get from 'lodash/get'
-import { applyPatches } from 'immer'
+import { applyPatches, enablePatches } from 'immer'
+enablePatches()
 
 export function nbprReducer(state = {}, { meta, payload }) {
   let returnState = state

@@ -1,28 +1,6 @@
 import { store, makeReducer, makeStore } from '../src/main'
 import _ from 'lodash'
 
-const newTest = (testRunner, name, actualTest) => {
-  return testRunner(name, () => {
-    console.log(`STARTING: ${name}`)
-    return Promise.resolve()
-      .then(actualTest)
-      .then(testRun => {
-        console.log(`ENDING: ${name}`)
-        return testRun
-      })
-      .catch(error => {
-        console.log(`ENDING (error): ${name}`)
-        console.error(error)
-        throw error
-      })
-  })
-}
-
-const globalTest = test
-test = newTest.bind(null, globalTest) // eslint-disable-line no-global-assign
-test.only = newTest.bind(null, globalTest.only)
-test.skip = newTest.bind(null, globalTest.skip)
-
 let storeKey = (function () {
   let key = 1
   return () => key++

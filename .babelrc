@@ -8,8 +8,5 @@
       }
     ], 
     "@babel/preset-react"
-  ],
-  "plugins": [
-    "@babel/syntax-export-extensions"
   ]
 }

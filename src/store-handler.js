@@ -5,7 +5,7 @@ import { get } from './get'
 import { action } from './action'
 import { nbprReducer } from './default-reducer';
 
-import lodash_get from 'lodash/get'
+import _ from 'lodash'
 
 const stores = {}
 
@@ -34,7 +34,7 @@ export const makeStore = ({
   let passThroughArguments = [preloadedState, enhancer]
 
   function reducerRouter(state, action) {
-    let nbprMeta = lodash_get(action, 'meta.nbpr', Symbol.for('nbpr-meta-not-set'))
+    let nbprMeta = _.get(action, 'meta.nbpr', Symbol.for('nbpr-meta-not-set'))
 
     // if meta.nbpr is not set, don't bother with running the nbprReducer
     if (nbprMeta === Symbol.for('nbpr-meta-not-set'))

@@ -1,4 +1,4 @@
-import lodash_get from 'lodash/get'
+import _ from 'lodash'
 
 /**
  * 
@@ -17,7 +17,7 @@ export function get(path, defaultValue) {
   
   // .get(path) or .get(path, defaultValue)
   else if (arguments.length === 1 || arguments.length === 2) {
-    return lodash_get(store.getState(), path, defaultValue)
+    return _.get(store.getState(), path, defaultValue)
   }
 
   if (process.env.NODE_ENV !== 'production') {
