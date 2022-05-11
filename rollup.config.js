@@ -35,18 +35,7 @@ export default [
       replace({
         'process.env.NODE_ENV': JSON.stringify('production')
       }),
-      terser({
-        compress: {
-          pure_getters: true,
-          unsafe: true,
-          unsafe_comps: true,
-          warnings: false
-        },
-        mangle: {
-          toplevel: true,
-          properties: true
-        }
-      }),
+      terser(),
       visualizer({ filename: 'stats/commonjs.min.html' })
     ]
   },
@@ -78,18 +67,7 @@ export default [
       replace({
         'process.env.NODE_ENV': JSON.stringify('production')
       }),
-      terser({
-        compress: {
-          pure_getters: true,
-          unsafe: true,
-          unsafe_comps: true,
-          warnings: false
-        },
-        mangle: {
-          toplevel: true,
-          properties: true
-        }
-      }),
+      terser(),
       visualizer({ filename: 'stats/es.min.html' })
     ]
   }

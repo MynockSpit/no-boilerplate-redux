@@ -3,7 +3,7 @@ module.exports = {
   transformIgnorePatterns: [
     "/!node_modules\\/lodash/"
   ],
-  // verbose: true,
+  verbose: true,
   collectCoverage: true,
   coverageReporters: ["cobertura", "json", "lcov", "text"]
 }
