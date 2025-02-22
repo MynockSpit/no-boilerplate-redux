@@ -10,12 +10,12 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  build-older:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 14.x, 16.x, 18.x, 20.x, 22.x, 23.x]
+        node-version: [10.x, 12.x, 14.x, 16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -26,5 +26,25 @@ jobs:
         node-version: ${{ matrix.node-version }}
     # install peer deps :(
     - run: npm install redux lodash
-    - run: npm ci
+    # Not using CI for older versions b/c the shrinkwrap format has changed
+    - run: npm i
     - run: npm test
+
+  build-newer:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x, 23.x]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      # install peer deps :(
+      - run: npm install redux lodash
+      - run: npm ci
+      - run: npm test
