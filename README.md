@@ -254,7 +254,7 @@ export const myStore = makeStore({
 Creates the Redux store for use with `no-boilerplate-redux`. See the migration section above for quirks and caveats.
 
 #### Arguments
-`[key] (String)`: A string representing the key of this  Allows you to use multiple stores.  
+`[key] (String)`: A key that differentiates multiple stores. Not required if you only use one store, but required if you have multiple.
 `[reducer] (Function|Object)`: The reducer function. Not necessary if you have no standard Redux reducers. Identical to the `reducer` argument in Redux's [`createStore`](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments).  
 `[preloadedState] (Object)`: The initial state. Identical to the `preloadedState` argument in Redux's [`createStore`](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments).  
 `[enhancer] (Function)`: The store enhancer. Identical to the `enhancer` argument in Redux's [`createStore`](https://github.com/reduxjs/redux/blob/master/docs/api/createStore.md#arguments).
@@ -274,9 +274,9 @@ Creates the Redux store for use with `no-boilerplate-redux`. See the migration s
   import { makeStore, makeReducer } from 'no-boilerplate-redux' 
   ```
 
-- If you use `combineReducers` from `no-boilerplate-redux`, all top-level keys will always be set to `null`. This is the same behavior found in vanilla redux. If you do NOTE use `combineReducers` from `no-boilerplate-redux` there is no restriction on the values you can set.
+- If you use `makeReducer` from `no-boilerplate-redux`, all top-level keys will always be set to `null`. This is the same behavior found in vanilla redux. If you do NOT use `makeReducer` from `no-boilerplate-redux` there is no restriction on the values you can set, but you must handle all reduce actions manually, and thus, is not recommended.
 
-- If you want to use multiple stores, the second create call **must provide a `key` property**. Multiple stores is not recommended.
+- If you want to use multiple stores, the second `makeStore` call **must provide a `key` property**. Using multiple stores is not recommended.
 
 #### Examples
 
@@ -351,9 +351,10 @@ const myStore = makeStore({
 
 ### `makeReducer(reducers, [combiner])`
 
+A no-boilerplate-redux alternative to `combineReducers` that allows you to use regular redux reducers alongside no-boilerplate-redux's methods. If you are not migrating to no-boilerplate-redux from an existing redux installation, you do not need this.
+
 #### Arguments
-`reducers (Object)`: An object whose values correspond to different reducer functions that need to be combined into one. One handy way to obtain it is to use ES6 `import * as reducers` syntax. The reducers may never return undefined for any action. Instead, they should return their initial state if the state passed to them was undefined, and the current state for any unrecognized action. Identical to the reducer object you'd pass into `redux`'s [`combineReducers`](https://github.com/reduxjs/redux/blob/master/docs/api/combineReducers.md).  
- * @param {Function} [combiner]   A function used to combine the reducers object into
+`reducers (Object)`: An object whose values correspond to different reducer functions that need to be combined into one. No reducer function provided may return `undefined`. Instead, return an initial non-undefined default state, such as blank string, empty array, empty object, or even `null`. Identical to the reducer object you'd pass into `redux`'s [`combineReducers`](https://github.com/reduxjs/redux/blob/master/docs/api/combineReducers.md).  
 `[combiner] (Function)`: A function used to combine the reducers in the `reducers` object. If not set, defaults to `redux`'s [`combineReducers`](https://github.com/reduxjs/redux/blob/master/docs/api/combineReducers.md).  
 
 #### Returns
