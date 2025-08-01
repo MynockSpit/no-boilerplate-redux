@@ -34,7 +34,7 @@
     "test": "npm run build && jest",
     "toc": "markdown-toc -i README.md"
   },
-  "version": "2.0.6",
+  "version": "2.0.7",
   "keywords": [
     "redux",
     "reducerless",
